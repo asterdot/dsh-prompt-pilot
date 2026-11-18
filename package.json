@@ -1,0 +1,80 @@
+{
+	"name": "dsh-prompt-pilot",
+	"version": "1.0.0",
+	"description": "Unofficial fork of dsh-prompt-rewriter: draft rewriting, mode advice, and tiered skill suggestions for DSH.",
+	"type": "module",
+	"icon": "icon.svg",
+	"exports": {
+		".": "./index.js",
+		"./client": "./client.js",
+		"./locale/*.json": "./locale/*.json",
+		"./icon": "./icon.svg"
+	},
+	"files": [
+		"index.js",
+		"legacy-rules.mjs",
+		"intent-first-rules.mjs",
+		"workbuddy-rules.mjs",
+		"client.js",
+		"cordis.patch.yml",
+		"locale/*.json",
+		"icon.svg",
+		"README.md",
+		"README.en.md",
+		"CHANGELOG.md",
+		"LICENSE",
+		"NOTICE.md"
+	],
+	"dsh": {
+		"bundle": {
+			"patch": "./cordis.patch.yml"
+		},
+		"client": {
+			"platform": "web",
+			"immediately": true,
+			"inject": [
+				"@deepseek-ai/dsh-client-ui-conversation",
+				"@deepseek-ai/dsh-client-locale"
+			]
+		}
+	},
+	"keywords": [
+		"deepseek-harness",
+		"dsh",
+		"cordis",
+		"plugin",
+		"prompt",
+		"prompt-engineering",
+		"dsh-plugin"
+	],
+	"license": "MIT",
+	"peerDependencies": {
+		"@deepseek-ai/schemastery": "^3.18.1",
+		"@deepseek-ai/dsh-client-ui-conversation": "*",
+		"@deepseek-ai/dsh-client-locale": "*"
+	},
+	"dependencies": {
+		"@deepseek-ai/schemastery": "^3.18.1"
+	},
+	"engines": {
+		"dsh": ">=0.1.0",
+		"node": ">=22.0.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"peerDependenciesMeta": {
+		"@deepseek-ai/dsh-client-ui-conversation": {
+			"optional": true
+		},
+		"@deepseek-ai/dsh-client-locale": {
+			"optional": true
+		}
+	},
+	"scripts": {
+		"check": "node --check index.js && node --check client.js",
+		"test": "node tests/test-host.mjs && node tests/test-client.mjs && node tests/test-units.mjs && node tests/test-settings.mjs",
+		"prepublishOnly": "npm run check && npm test",
+		"pack": "node -e \"require('node:fs').mkdirSync('dist',{recursive:true})\" && npm pack --pack-destination dist"
+	}
+}
