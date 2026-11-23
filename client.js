@@ -38,27 +38,22 @@ window.__ModuleLoader__.load({
 			// for a 12px gap + 8px trigger padding therefore made the icon drift or
 			// overlap as soon as a second control appeared or the width crossed 560px.
 			//
-			// The seat owns its own box: fixed flex basis, no shrink, bounded width.
-			// Its position comes only from the slot's `order` (see the registration
-			// site), never from geometry of adjacent controls.
-			'.dsh-pe_root{display:flex;flex:0 0 auto;align-items:center;min-width:0;max-width:100%;margin-right:0;',
-			'position:relative;transform:translateX(var(--dsh-pe-seat-nudge,7px))}',
-			// Purely visual nudge toward the model label. Unlike the old negative
-			// margin this does NOT participate in flex layout: the seat's box keeps its
-			// place, no sibling is pulled, and the value is a fixed small distance that
-			// does not cancel (or depend on) the host's gap/padding. 7px is below the
-			// host's narrowest toolbar gap (8px), so even when another plugin registers
-			// to the right of this seat it can never touch its neighbour. The host or a
-			// theme can override --dsh-pe-seat-nudge without changing this bundle.
-			// A notice carries text, so it drops the nudge instead of leaning into it.
-			'.dsh-pe_mode{position:fixed;inset:auto;margin:0;box-sizing:border-box;max-width:min(260px,calc(100vw - 16px));',
-			'padding:6px 10px;border:1px solid var(--dsw-alias-border-l1);border-radius:8px;pointer-events:none;',
-			'background:var(--dsw-alias-bg-overlay);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;',
-			'line-height:1.5;white-space:normal;overflow-wrap:anywhere;box-shadow:0 4px 14px rgb(0 0 0 / 14%)}',
-			'.dsh-pe_root[data-notice="true"]{max-width:172px;transform:none}',
-			// 22x22 hit target inside the 28px-tall toolbar row: comfortably clickable
-			// while still reading as a compact toolbar control.
-			'.dsh-pe_button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;',
+			// Keep the status card in toolbar flow so it reserves space instead of
+			// covering composer text; center the undo button in the same row.
+			// Slot order, not adjacent-control geometry, positions this seat.
+			'.dsh-pe_root{display:inline-flex;flex:0 1 auto;align-items:center;gap:6px;',
+			'width:max-content;min-width:0;max-width:calc(100vw - 64px);margin:0;position:static;}',
+			// Host slot order determines position without shifting the root.
+			'.dsh-pe_statusFrame{display:flex;flex:0 1 320px;order:-1;flex-wrap:wrap;align-items:flex-start;gap:4px;',
+			'width:min(320px,calc(100vw - 96px));max-width:100%;min-width:0;box-sizing:border-box;',
+			'padding:6px 8px;border:1px solid color-mix(in srgb,#fff 22%,transparent);border-radius:8px;',
+			'background:color-mix(in srgb,#000 72%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;',
+			'font:inherit;font-size:11px;line-height:16px;max-height:96px;overflow:auto;overflow-wrap:anywhere}',
+			'.dsh-pe_skills{display:flex;align-items:flex-start;gap:4px;min-width:0;max-width:100%;flex:1 1 100%;}.dsh-pe_skillRows{display:grid;gap:2px;min-width:0;flex:1 1 auto;}.dsh-pe_copyButton{flex:0 0 24px;width:24px;height:24px;padding:0;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 72%,#80858f);border-radius:6px;background:transparent;color:#fff;cursor:pointer;}.dsh-pe_copyButton:hover{background:color-mix(in srgb,#fff 12%,transparent);color:#fff;}.dsh-pe_copyButton:focus-visible{outline:none;box-shadow:0 0 0 2px var(--dsw-alias-brand-primary-new-colorprimary-new-color,#4176e6);}.dsh-pe_copyButton[data-copy-state="copied"]{color:var(--dsw-alias-state-success-primary,#2f9e68);}.dsh-pe_copyButton[data-copy-state="error"]{color:var(--dsw-alias-state-error-primary);}.dsh-pe_mode,.dsh-pe_notice{display:block;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}',
+			'.dsh-pe_modeReason{overflow-wrap:anywhere}',
+			// Keep the 22x22 hit target compact as the status card grows the row.
+			// The card, not the undo button, carries the added layout size.
+			'.dsh-pe_button{box-sizing:border-box;display:inline-flex;flex:0 0 22px;align-items:center;justify-content:center;',
 			'width:22px;height:22px;padding:0;border:0;border-radius:var(--dsw-radius-sm);background:0 0;',
 			'color:var(--dsw-alias-label-secondary);cursor:pointer;line-height:0}',
 			'.dsh-pe_button:hover:not(:disabled){background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}',
@@ -101,18 +96,6 @@ window.__ModuleLoader__.load({
 			'right:2px;bottom:2px;width:4px;height:4px;border-radius:50%;',
 			'background:var(--dsw-alias-brand-primary-new-colorprimary-new-color,#4176e6);',
 			'pointer-events:none}',
-			// Visible failure notice. A red mark alone never told the user WHY the run
-			// failed; the message now has a real, on-screen outlet instead of living
-			// only in `title` and the visually hidden live region.
-			//
-			// The whole seat is width-capped and the notice ellipsizes inside it. Both
-			// earlier attempts failed for a concrete reason: an uncapped inline notice
-			// ran into the model label, and a `cqw` cap collapsed to nothing when the
-			// row was sized to content. A fixed pixel budget on the seat is stable in
-			// both layouts; it lives with the seat's other notice rules above.
-			'.dsh-pe_notice{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;',
-			'white-space:nowrap;font-size:11px;line-height:16px;',
-			'color:var(--dsw-alias-state-error-primary)}',
 			'.dsh-pe_notice[data-tone="info"]{color:var(--dsw-alias-label-secondary)}',
 			'.dsh-pe_sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;',
 			'clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}',
@@ -186,15 +169,15 @@ window.__ModuleLoader__.load({
 			'outline-offset:2px;border-radius:2px}',
 			// ---- Settings page -------------------------------------------------
 			// Host theme tokens only, so the page follows light/dark automatically.
-			'.dsh-pe-settings{display:flex;flex-direction:column;gap:10px;max-width:760px}',
+			'.dsh-pe-settings{display:flex;flex-direction:column;gap:0;max-width:880px;padding:4px 0 32px;color:var(--dsw-alias-label-primary)}',
 			// Header line: intro on the left, version on the right, the way the plugin
 			// market pairs a description with its package version.
-			'.dsh-pe-settingsHead{display:flex;flex-wrap:wrap;align-items:baseline;',
-			'justify-content:space-between;gap:4px 12px;margin:0}',
+			'.dsh-pe-settingsHead{display:flex;flex-wrap:wrap;align-items:flex-end;',
+			'justify-content:space-between;gap:12px 24px;margin:0 0 24px;padding:0 2px 20px;border-bottom:1px solid var(--dsw-alias-border-l1)}',
 			'.dsh-pe-settingsIntro{margin:0;color:var(--dsw-alias-label-secondary);',
-			'font-size:13px;line-height:20px}',
-			'.dsh-pe-settingsGroupHead{display:flex;align-items:center;margin-top:4px;padding:0 2px 5px;border-bottom:1px solid var(--dsw-alias-border-l1)}',
-			'.dsh-pe-settingsGroupTitle{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:18px;font-weight:600;letter-spacing:.02em}',
+			'font-size:13px;line-height:20px;max-width:54ch}',
+			'.dsh-pe-settingsGroupHead{display:flex;align-items:center;margin:24px 0 0;padding:0 2px 8px;border-bottom:1px solid var(--dsw-alias-border-l1)}',
+			'.dsh-pe-settingsGroupTitle{margin:0;color:var(--dsw-alias-label-primary);font-size:11px;line-height:18px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}',
 			// Same weight and colour as the host's own package version labels: muted,
 			// monospace, and unobtrusive until hovered.
 			'.dsh-pe-version{flex:none;font-size:12px;line-height:20px;color:var(--dsw-alias-label-secondary);',
@@ -220,18 +203,18 @@ window.__ModuleLoader__.load({
 			// settings panel owns the ancestor chain and declares no container-type,
 			// so the query would never fire. `flex-wrap` depends on nothing but the
 			// row's own available width.
-			'.dsh-pe-settingsRow{display:flex;flex-wrap:wrap;align-items:flex-start;',
-			'justify-content:space-between;gap:10px 16px;padding:14px 16px;',
-			'border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-layer-1)}',
-			'.dsh-pe-settingsRow:hover{border-color:var(--dsw-alias-border-l2)}',
+			'.dsh-pe-settingsRow{display:flex;flex-wrap:wrap;align-items:center;',
+			'gap:12px 24px;padding:16px 2px;border-bottom:1px solid var(--dsw-alias-border-l1);',
+			'background:transparent;transition:background-color .15s ease}',
+			'.dsh-pe-settingsRow:hover{background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 54%,transparent)}',
 			// The copy needs a real minimum, otherwise it shrinks instead of pushing
 			// the control onto its own line.
-			'.dsh-pe-settingsCopy{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 260px}',
-			'.dsh-pe-settingsTitle{color:var(--dsw-alias-label-primary);font-size:13px;line-height:20px;font-weight:500}',
+			'.dsh-pe-settingsCopy{display:flex;flex-direction:column;gap:4px;flex:1 1 240px;min-width:0}',
+			'.dsh-pe-settingsTitle{color:var(--dsw-alias-label-primary);font-size:13px;line-height:20px;font-weight:600}',
 			'.dsh-pe-settingsHint{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;',
 			'line-height:18px;overflow-wrap:break-word}',
-			'.dsh-pe-settingsControl{flex:0 1 auto;display:flex;align-items:center;min-height:24px;margin-left:auto}',
-			'.dsh-pe-input{box-sizing:border-box;width:220px;max-width:100%;height:30px;padding:0 8px;',
+			'.dsh-pe-settingsControl{display:flex;align-items:center;justify-content:flex-end;min-width:0;max-width:100%;margin-inline-start:auto}',
+			'.dsh-pe-input{box-sizing:border-box;width:260px;max-width:100%;height:34px;padding:0 10px;',
 			'border-radius:var(--dsw-radius-sm);border:1px solid var(--dsw-alias-border-l1);',
 			'background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);',
 			'font:inherit;font-size:13px;line-height:20px;outline:none}',
@@ -241,12 +224,12 @@ window.__ModuleLoader__.load({
 			// The model <select> follows the switch on its own full-width line,
 			// right-aligned under it. flex:0 0 100% forces the wrap; max-width on
 			// the select keeps narrow panels from squeezing the control.
-			'.dsh-pe-settingsExtra{flex:0 0 100%;display:flex;justify-content:flex-end;min-width:0}',
+			'.dsh-pe-settingsExtra{display:flex;flex:0 0 100%;justify-content:flex-end;min-width:0}',
 			// A rejected save is rendered inside the row that caused it: the value on
 			// screen does not change when a write is refused, so a message parked at the
 			// bottom of the page reads as "the click did nothing".
-			'.dsh-pe-settingsRow>.dsh-pe-settingsError{flex:0 0 100%;margin:6px 0 0}',
-			'.dsh-pe-select{box-sizing:border-box;width:240px;max-width:100%;height:30px;padding:0 8px;',
+			'.dsh-pe-settingsRow>.dsh-pe-settingsError{box-sizing:border-box;flex:0 0 100%;min-width:0;margin:0;padding:8px 10px;border-radius:4px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 10%,transparent)}',
+			'.dsh-pe-select{box-sizing:border-box;width:260px;max-width:100%;height:34px;padding:0 10px;',
 			'border-radius:var(--dsw-radius-sm);border:1px solid var(--dsw-alias-border-l1);',
 			'background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);',
 			'font:inherit;font-size:13px;line-height:20px;outline:none;cursor:pointer}',
@@ -289,7 +272,7 @@ window.__ModuleLoader__.load({
 			'.dsh-pe-switch:disabled{opacity:.55;cursor:default}',
 			'@media (prefers-reduced-motion:reduce){.dsh-pe-switch,.dsh-pe-switch::after{transition:none}}',
 			// ---- shortcut row ----------------------------------------------------
-			'.dsh-pe-shortcut{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}',
+			'.dsh-pe-shortcut{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}',
 			'.dsh-pe-binding{box-sizing:border-box;min-width:96px;height:30px;padding:0 10px;',
 			'border-radius:var(--dsw-radius-sm);border:1px solid var(--dsw-alias-border-l1);',
 			'background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);',
@@ -304,6 +287,7 @@ window.__ModuleLoader__.load({
 			'.dsh-pe-reset:hover:not(:disabled){color:var(--dsw-alias-label-secondary);',
 			'background:var(--dsw-alias-bg-layer-2)}',
 			'.dsh-pe-reset:disabled{opacity:.45;cursor:default}',
+			'@media (max-width:560px){.dsh-pe-settingsRow{gap:10px;padding:14px 2px}.dsh-pe-settingsHead{align-items:flex-start;flex-direction:column;margin-bottom:18px;padding-bottom:16px}.dsh-pe-version{align-self:flex-start}.dsh-pe-settings{padding-bottom:24px}}',
 			'.dsh-pe-settingsError{margin:8px 0 0;color:var(--dsw-alias-state-error-primary);',
 			'font-size:12px;line-height:18px;overflow-wrap:break-word}',
 		]
@@ -763,34 +747,38 @@ window.__ModuleLoader__.load({
 		 * original edit, so both routes remain valid.
 		 */
 
-		function ModeBubble({ mode, reason, t }) {
-		  const ref = useRef(null);
-		  useEffect(() => {
-		    const bubble = ref.current;
-		    if (!bubble?.showPopover) return;
-		    const anchor = bubble.parentElement;
-		    const position = () => {
-		      const box = anchor.getBoundingClientRect();
-		      const { width, height } = bubble.getBoundingClientRect();
-		      bubble.style.left = Math.max(8, Math.min(box.right - width, window.innerWidth - width - 8)) + 'px';
-		      bubble.style.top = Math.max(8, Math.min(box.top - height - 8, window.innerHeight - height - 8)) + 'px';
-		    };
-		    bubble.showPopover();
-		    position();
-		    const observer = new ResizeObserver(position);
-		    observer.observe(bubble);
-		    observer.observe(anchor);
-		    window.addEventListener('resize', position);
-		    window.addEventListener('scroll', position, true);
-		    return () => {
-		      observer.disconnect();
-		      window.removeEventListener('resize', position);
-		      window.removeEventListener('scroll', position, true);
-		      if (bubble.matches(':popover-open')) bubble.hidePopover();
-		    };
-		  }, [mode]);
-		  return h('span', { ref, popover: 'manual', className: 'dsh-pe_mode', role: 'status' },
-		    h('strong', null, t('mode.' + mode)), ' · ', reason);
+		function CopyIcon() {
+			return h('svg', { viewBox: '0 0 24 24', width: 14, height: 14, 'aria-hidden': 'true', focusable: 'false' },
+				h('path', { d: 'M9 8V5.5A1.5 1.5 0 0 1 10.5 4h8A1.5 1.5 0 0 1 20 5.5v8a1.5 1.5 0 0 1-1.5 1.5H16M5.5 8h8A1.5 1.5 0 0 1 15 9.5v8A1.5 1.5 0 0 1 13.5 19h-8A1.5 1.5 0 0 1 4 17.5v-8A1.5 1.5 0 0 1 5.5 8Z', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }));
+		}
+
+		function SkillStatus({ skillAdvice }) {
+			const [copyState, setCopyState] = useState('idle');
+			const groups = [];
+			if (skillAdvice?.likely?.length) groups.push('1. 大概率用得到的技能：' + skillAdvice.likely.join('、'));
+			if (skillAdvice?.possible?.length) groups.push('2. 小概率用得到的技能（按需加载）：' + skillAdvice.possible.join('、'));
+			if (!groups.length) return null;
+			const copy = async () => {
+				try {
+					if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+					await navigator.clipboard.writeText(groups.join('\n'));
+					setCopyState('copied');
+				} catch {
+					setCopyState('error');
+				}
+			};
+			const label = copyState === 'copied' ? '已复制技能建议' : copyState === 'error' ? '复制失败，请检查剪贴板权限' : '复制技能建议';
+			return h('div', { className: 'dsh-pe_skills', role: 'status' },
+				h('div', { className: 'dsh-pe_skillRows' }, groups.map((line) => h('div', { key: line }, line))),
+				h('button', { type: 'button', className: 'dsh-pe_copyButton', title: label, 'aria-label': label, 'data-copy-state': copyState, onClick: copy }, copyState === 'copied' ? '✓' : h(CopyIcon)),
+			);
+		}
+
+		function ModeStatus({ mode, reason, t }) {
+			return h('span', { className: 'dsh-pe_mode', role: 'status' },
+				h('strong', null, t(mode ? 'mode.' + mode : 'mode.confirm')),
+				mode ? h('span', { className: 'dsh-pe_modeReason' }, ' · ' + reason) : null,
+			);
 		}
 
 		function EnhanceControl(props) {
@@ -894,20 +882,24 @@ window.__ModuleLoader__.load({
 			// enhancement stop; the request now belongs to the registry and keeps
 			// running until it settles on its own.
 			const adviceMount = useRef(null);
+			const wholeWriteRef = useRef(false);
 			useEffect(() => {
 				const token = {};
 				adviceMount.current = token;
 				return () => {
 					adviceMount.current = null;
 					const previous = taskStore.snapshot(sessionId)?.restore;
-					if (previous?.adviceMount === token) taskStore.patch(sessionId, { restore: { ...previous, modeAdvice: null, adviceMount: null } });
+					// Unmounting means the user changed sessions, not that the completed
+					// advice became invalid. Keep it in the session registry for remount.
+					if (previous?.adviceMount === token) taskStore.patch(sessionId, { restore: { ...previous, adviceMount: null } });
 				};
 			}, [sessionId]);
 
 			const replaceDraft = useCallback(
 				(text, before, rev) => {
+					wholeWriteRef.current = false;
 					if (inputActions === undefined || typeof inputActions.insertText !== 'function') return false;
-					const clean = sanitizeForInsert(text);
+					const clean = sanitizeForInsert(text, stripChipLabels(before, occurrencesRef.current));
 					const plan = planDraftReplacement(before, occurrencesRef.current);
 					if (plan.segments.length === 0) return false;
 					// Back to front: editing a later run cannot move an earlier run's
@@ -923,6 +915,7 @@ window.__ModuleLoader__.load({
 						if (plan.segments.length !== 1 || occurrencesRef.current.length > 0) return false;
 						if (typeof inputActions.setDraft !== 'function') return false;
 						inputActions.setDraft(clean);
+						wholeWriteRef.current = true;
 						return true;
 					};
 					for (let i = plan.segments.length - 1; i >= 0; i -= 1) {
@@ -1025,9 +1018,10 @@ window.__ModuleLoader__.load({
 		const ATTACHMENT_PATH_RE = /@?[A-Za-z]:\\[^\r\n]*?\.[A-Za-z0-9]{2,5}(?=[\s，。；、)}\]"']|$)/gu;
 
 		/** Normalise text before writing so the host can never silently strip it. */
-		function sanitizeForInsert(text) {
+		function sanitizeForInsert(text, typedDraft = '') {
 			const clean = String(text ?? '').replace(REFERENCE_PLACEHOLDER_RE, '');
-			return clean.replace(ATTACHMENT_PATH_RE, (match) => shortenAttachmentLabel(match));
+			const typedPaths = new Set((String(typedDraft ?? '').match(/@"[^"\r\n]+"/gu) ?? []).map((reference) => reference.slice(2, -1)));
+			return clean.replace(ATTACHMENT_PATH_RE, (match) => (typedPaths.has(match.replace(/^@/u, '')) ? match : shortenAttachmentLabel(match)));
 		}
 
 		/**
@@ -1416,8 +1410,14 @@ window.__ModuleLoader__.load({
 						// undefined and the parked result waits for the remount.
 						const apply = taskStore.ensure(sessionId).applyResult;
 						const advice = payload?.modeAdvice;
-						const modeAdvice = mount !== null && mount === adviceMount.current && firstDraft && latestRev.current === rev
-							&& /^(standard|ptc|ops|extreme|creative)$/.test(advice?.mode) && typeof advice.reason === 'string' ? advice : null;
+						const eligible = mount !== null && mount === adviceMount.current && firstDraft && latestRev.current === rev;
+						const validAdvice = /^(standard|ptc|ops|extreme|creative)$/.test(advice?.mode) && typeof advice.reason === 'string' && advice.reason.trim();
+						// Advice belongs to the request result; mount/revision guards govern only
+						// whether its text may be written into the current composer.
+						const modeAdvice = validAdvice ? advice : (firstDraft ? { mode: null } : null);
+						const candidateSkills = payload?.skillAdvice;
+						const validSkills = candidateSkills && ['likely', 'possible'].every((key) => Array.isArray(candidateSkills[key]) && candidateSkills[key].every((name) => typeof name === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)));
+						const skillAdvice = validSkills ? candidateSkills : null;
 						const outcome = typeof apply === 'function' ? apply(text, before, rev) : 'parked';
 						taskStore.patch(sessionId, {
 							contextAware: payload?.mode === 'context',
@@ -1425,28 +1425,29 @@ window.__ModuleLoader__.load({
 							notice: payload?.kind === 'unchanged' ? t('state.unchanged') : null,
 						});
 						if (outcome === 'unchanged') {
-							taskStore.patch(sessionId, { restore: modeAdvice ? { produced: before, pending: false, adviceRev: rev, modeAdvice, adviceMount: mount } : null });
+							taskStore.patch(sessionId, { restore: modeAdvice || skillAdvice ? { produced: before, pending: false, adviceRev: rev, modeAdvice, skillAdvice, adviceMount: mount } : null });
 						} else if (outcome === 'applied') {
 							// The undo offer is only meaningful once the text actually landed in the
 							// editor; offering it after a refused or superseded write would claim a
 							// swap that never happened.
 							// Only the typed text is restorable: the chips never left the editor,
 							// and writing their labels back would duplicate every attachment.
+							const typedDraft = stripChipLabels(before, occurrencesRef.current);
 							taskStore.patch(sessionId, { restore: {
-								text: stripChipLabels(before, occurrencesRef.current), produced: null, pending: true,
-								modeAdvice, adviceMount: mount,
+								text: typedDraft, produced: wholeWriteRef.current ? sanitizeForInsert(text, typedDraft) : null, pending: !wholeWriteRef.current, pendingDraft: before,
+								modeAdvice, skillAdvice, adviceMount: mount,
 							} });
 						} else if (outcome === 'refused') {
 							taskStore.patch(sessionId, { restore: null, failure: t('state.refused') });
 						} else if (outcome === 'parked') {
 							// Nobody is mounted for this session: keep the result for the next mount.
-							taskStore.patch(sessionId, { result: { text, originRev: rev, origin: before }, restore: null });
+							taskStore.patch(sessionId, { result: { text, originRev: rev, origin: before, skillAdvice, modeAdvice }, restore: null });
 						} else if (outcome === 'waiting') {
 							// The composer is mid-send and hides the control until it is idle, so
 							// the only thing to publish now is the live-region announcement: the
 							// write itself lands on the next plain phase.
 							taskStore.patch(sessionId, {
-								result: { text, originRev: rev, origin: before },
+								result: { text, originRev: rev, origin: before, skillAdvice, modeAdvice },
 								restore: null,
 								announce: t('state.deferred'),
 							});
@@ -1572,14 +1573,19 @@ window.__ModuleLoader__.load({
 					: unchanged
 						? replaceDraft(text, pendingResult.origin, latestRev.current)
 						: false;
-				// Consume regardless: a stale result must not be re-applied on every mount.
+				// Keep an unchanged result parked if the host transiently refuses a write.
+				if (!swapped && unchanged) {
+					taskStore.patch(sessionId, { announce: t('state.deferred') });
+					return;
+				}
+				// Consume only after success or after the source draft has changed.
 				taskStore.patch(sessionId, { result: undefined });
 				if (swapped) {
 					// Same affordance the live path gives: once the text lands, the seat offers
 					// the way back. Without this a parked delivery would be write-only.
 					taskStore.patch(sessionId, {
 						notice: null,
-						restore: { text: stripChipLabels(pendingResult.origin, occurrencesRef.current), produced: null, pending: true },
+						restore: { text: stripChipLabels(pendingResult.origin, occurrencesRef.current), produced: null, pending: true, pendingDraft: pendingResult.origin, skillAdvice: pendingResult.skillAdvice ?? null, modeAdvice: pendingResult.modeAdvice ?? null },
 					});
 				}
 				if (!swapped) {
@@ -1587,19 +1593,21 @@ window.__ModuleLoader__.load({
 					// a notice instead of overwriting text they have since edited.
 					taskStore.patch(sessionId, { restore: null, announce: t('state.stale') });
 				}
-			}, [inputActions, phase, replaceDraft, sessionId, t]);
+			}, [draftRev, inputActions, phase, replaceDraft, sessionId, t]);
 
 			// Adopt the produced draft on the first render after a successful swap,
 			// then retire the offer once the user edits that text.
 			useEffect(() => {
 				if (restore === null) return;
 				if (restore.pending) {
-					taskStore.patch(sessionId, { restore: { ...restore, produced: draft, pending: false, adviceRev: restore.adviceRev ?? draftRev } });
+					// A host may accept the write before publishing its new draft snapshot.
+					if (draft === restore.pendingDraft) return;
+					taskStore.patch(sessionId, { restore: { ...restore, produced: draft, pending: false, pendingDraft: null, adviceRev: restore.adviceRev ?? draftRev } });
 					return;
 				}
 				if (restore.produced !== draft) taskStore.patch(sessionId, { restore: null });
-				else if (restore.modeAdvice && (!firstDraft || restore.adviceRev !== draftRev)) {
-					taskStore.patch(sessionId, { restore: { ...restore, modeAdvice: null } });
+				else if ((restore.modeAdvice || restore.skillAdvice) && (!firstDraft || restore.adviceRev !== draftRev)) {
+					taskStore.patch(sessionId, { restore: { ...restore, modeAdvice: null, skillAdvice: null } });
 				}
 			}, [draft, draftRev, firstDraft, restore, sessionId]);
 
@@ -1673,12 +1681,18 @@ window.__ModuleLoader__.load({
 					// twisting tail, and the two utility states keep the outline icons.
 					busy ? h(WhaleTail) : canUndo ? h(UndoIcon) : failure !== null ? h(RetryIcon) : h(PilotIcon),
 				),
-				firstDraft && !busy && restore?.modeAdvice && !restore.pending && restore.produced === draft && restore.adviceRev === draftRev
-					? h(ModeBubble, { ...restore.modeAdvice, t }) : null,
-				// A failure keeps its reason on screen, inline and width-capped so it can
-				// never overlap the model label or be clipped by the composer card.
-				failure !== null && h('span', { className: 'dsh-pe_notice', 'data-tone': 'error', role: 'alert', title: failure }, failure),
-				notice !== null && !busy && failure === null ? h('span', { className: 'dsh-pe_notice', 'data-tone': 'info', title: notice }, notice) : null,
+				(() => {
+					const validRestore = !busy && restore && ((restore.pending && restore.pendingDraft === draft) || (!restore.pending && restore.produced === draft && restore.adviceRev === draftRev));
+					const advice = firstDraft && validRestore ? restore.modeAdvice : null;
+					const skillAdvice = validRestore ? restore.skillAdvice : null;
+					const message = failure ?? (notice !== null && !busy ? notice : null);
+					if (!advice && !skillAdvice && message === null) return null;
+					return h('div', { className: 'dsh-pe_statusFrame', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : 'status' },
+						advice ? h(ModeStatus, { ...advice, t }) : null,
+						skillAdvice ? h(SkillStatus, { skillAdvice }) : null,
+						message !== null ? h('span', { className: 'dsh-pe_notice', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : undefined, title: message }, message) : null,
+					);
+				})(),
 				// Kept for assistive tech only: the control itself is icon-only.
 				h('span', { className: 'dsh-pe_sr', role: 'status', 'aria-live': 'polite' }, status),
 			);
@@ -2501,6 +2515,7 @@ window.__ModuleLoader__.load({
 								'nav': '提示词领航',
 								'settings.feedback': '遇到问题？提 issue ↗',
 								'mode.standard': '建议：标准模式',
+								'mode.confirm': '发送前请确认对话模式',
 
 								'mode.ptc': '建议：PTC 模式',
 
@@ -2553,7 +2568,7 @@ window.__ModuleLoader__.load({
 								'settings.model.on': '开启：始终用下面选定的模型。选小模型可能更慢或效果更差。',
 								'settings.model.loading': '正在读取可用模型…',
 								'settings.model.loadError': '读取模型列表失败，请重试。',
-								'settings.model.placeholder': '还没选过模型',
+								'settings.model.placeholder': '与对话使用相同模型',
 								'settings.context.title': '参考之前的对话',
 								'settings.context.on': '开启：参考前文的目标与已排除方案，更耗 token。',
 								'settings.context.off': '关闭：只看当前输入。',
@@ -2600,6 +2615,7 @@ window.__ModuleLoader__.load({
 								'nav': 'Prompt Pilot',
 								'settings.feedback': 'Hit a problem? File an issue ↗',
 								'mode.standard': 'Suggested: Standard',
+								'mode.confirm': 'Check the conversation mode before sending',
 
 								'mode.ptc': 'Suggested: PTC',
 

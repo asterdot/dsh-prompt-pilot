@@ -24,6 +24,7 @@ import z from '@deepseek-ai/schemastery';
 import { INTENT_FIRST_RULES } from './intent-first-rules.mjs';
 import { LEGACY_RULES } from './legacy-rules.mjs';
 import { WORKBUDDY_RULES } from './workbuddy-rules.mjs';
+import { addDraftSkill, isProductInterfaceWork, MODE_ADVICE_DIRECTIVE, REWRITE_ONLY_DIRECTIVE, splitModeAdvice, strengthenHandoverAdvice } from './draft-advice.mjs';
 
 const RULE_SET_LEGACY = 'legacy';
 const RULE_SET_INTENT_FIRST = 'intent-first';
@@ -322,6 +323,14 @@ function describeFailure(code, fallback) {
  */
 function stripReferencePlaceholders(text) {
 	return String(text ?? '').replace(/[\uE100-\uE11D\uFFFC]/gu, '');
+}
+
+/** Re-append quoted references from the draft, never attachment metadata. */
+function preserveTypedFileReferences(draft, rewritten) {
+	const references = [...new Set(String(draft ?? '').match(/@"[^"\r\n]+"/gu) ?? [])];
+	const missing = references.filter((reference) => !rewritten.includes(reference));
+	if (missing.length === 0) return rewritten;
+	return `${rewritten.trimEnd()}\n\n${missing.join('\n')}`;
 }
 
 function normalizeOutput(raw, maxChars) {
@@ -1187,94 +1196,6 @@ function liveConfig(scope, config) {
  * @param windowCache - per-route context-window memo.
  * @returns the JSON envelope.
  */
-// Match declared triggers and unambiguous formats locally. Never send the catalog to the rewrite model.
-function isProductInterfaceWork(text) {
-	return /(?:界面|\b(?:ui|interface)\b)/iu.test(text)
-		&& /美化|打磨|视觉|布局|改进|优化|重新设计|\b(?:redesign|polish|visual|layout|beautify)\b/iu.test(text)
-		&& /开发|实现|修改|调整|设计|改进|优化|美化|打磨|\b(?:build|develop|implement|redesign|polish|beautify)\b/iu.test(text);
-}
-
-function selectDraftSkill(draft, fileNames, skills, rewritten = '') {
-	const groups = { likely: [], possible: [] };
-	const text = draft.normalize('NFKC').toLowerCase();
-	if (/不(?:要|用|必|需要|使用|调用|启用)[^。！？\n]{0,12}(?:技能|skill)|\b(?:no|without|do not use|don't use)\s+(?:any\s+)?skills?\b/i.test(text)) return groups;
-	const files = fileNames.join(' ').normalize('NFKC').toLowerCase();
-	const formats = {
-		'office-docx': /\b(?:word|docx)\b/u,
-		'office-pptx': /\b(?:pptx?|powerpoint)\b|演示文稿|幻灯片/u,
-		'office-xlsx': /\b(?:excel|xlsx)\b|电子表格/u,
-		office: /\b(?:office|pdf)\b/u,
-	};
-	const ranked = new Map();
-	for (const skill of skills) {
-		const { name, description, whenToUse, invocation } = skill;
-		if (invocation?.modelInvocable !== true || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) continue;
-		const named = new RegExp('(?:^|[^a-z0-9-])' + name + '(?=$|[^a-z0-9-])', 'iu');
-		if (named.test(rewritten)) continue;
-		if (new RegExp("(?:不(?:要|用|必|需要|使用|调用|启用)|(?:do not use|don't use|without)\\s+)\\s*[/`]?" + name + '(?=$|[^a-z0-9-])', 'iu').test(text)) continue;
-		const summaries = [description, whenToUse].filter((value) => typeof value === 'string');
-		let score = Object.hasOwn(formats, name) && formats[name].test(text + ' ' + files) ? (name === 'office' ? 1 : 4) : 0;
-		if (name.includes('-') && named.test(text)) score = Math.max(score, 9);
-		if (name === 'impeccable' && isProductInterfaceWork(text)) score = Math.max(score, 8);
-		if (name === 'browser-skill' && isProductInterfaceWork(text) && /验证|测试|验收|\b(?:verify|test|validate)\b/iu.test(text)) score = Math.max(score, 2);
-		if (name === 'browser-skill' && /(?:浏览器|browser).{0,20}(?:实测|验证|测试|test|verify)|(?:用|在|verify in|test in).{0,10}(?:浏览器|browser)/iu.test(text)) score = Math.max(score, 4);
-		for (const summary of summaries) {
-			const triggers = /(?:触发词|关键词|triggers?|keywords?)\s*[:：]\s*([^。；;\n]+)/iu.exec(summary)?.[1] ?? '';
-			for (const item of triggers.normalize('NFKC').toLowerCase().split(/[、，,|]/u)) {
-				const term = item.trim();
-				if (/^[\p{Script=Han}]{2,12}$/u.test(term) && text.includes(term)) score = Math.max(score, 2 + Math.min(term.length, 5));
-				else if (/^[a-z0-9][a-z0-9 /-]{2,30}$/u.test(term)
-					&& new RegExp('(?:^|[^a-z0-9])' + term + '(?=$|[^a-z0-9])', 'u').test(text)) score = Math.max(score, 5);
-			}
-		}
-		if (score) ranked.set(name, Math.max(score, ranked.get(name) ?? 0));
-	}
-	// 直接命中用途、格式或触发词归为大概率；辅助场景归为小概率。
-	for (const [name, score] of [...ranked].sort((a, b) => b[1] - a[1])) {
-		groups[score >= 4 ? 'likely' : 'possible'].push(name);
-	}
-	return groups;
-}
-
-async function addDraftSkill(scope, sessionId, draft, fileNames, outcome, signal) {
-	if (sessionId === undefined || !['enhanced', 'unchanged'].includes(outcome.kind)) return outcome;
-	try {
-		const agent = scope.get('agents')?.get(sessionId);
-		const registry = scope.get('skills');
-		if (!agent || !registry || !scope.get('tools')?.get('skill', agent)) return outcome;
-		const cwd = scope.get('workingDirectory')?.get(agent.session) ?? agent.session.header.cwd;
-		const catalog = await registry.snapshot({ scope: agent, cwd, signal: AbortSignal.any([signal, AbortSignal.timeout(1000)]) });
-		const { likely, possible } = selectDraftSkill(draft, fileNames, catalog.skills, outcome.text);
-		const zh = /\p{Script=Han}/u.test(draft);
-		const lines = [];
-		if (likely.length) lines.push((zh ? '1. 大概率用得到的技能：' : '1. Likely skills: ') + likely.join(zh ? '、' : ', '));
-		if (possible.length) lines.push((zh ? '2. 小概率用得到的技能（按需加载）：' : '2. Possible skills (load only if needed): ') + possible.join(zh ? '、' : ', '));
-		if (lines.length) return { kind: 'enhanced', text: outcome.text + '\n\n' + lines.join('\n') };
-	} catch {
-		// Skill discovery is optional; keep the successful rewrite if it cannot finish.
-	}
-	return outcome;
-}
-
-const REWRITE_ONLY_DIRECTIVE = 'Rewrite the draft for the user to review before sending; do not start the task. Unless explicitly asked in the original draft, do not add a requirement or promise to report skill usage after completion, and do not invent skill names.';
-
-const MODE_ADVICE_DIRECTIVE = [
-	'For this first message, also assess the underlying task (not the act of rewriting) and its expected workflow. For every clear actionable task, emit one separate first line before the rewrite result, even when the result is UNCHANGED: MODE_ADVICE <id> | <one short task-specific reason in the draft language>.',
-	'Choose creative for developing or customizing DSH itself (plugins, interface, or presets), even when these words are separated; e.g. developing a plugin to beautify the DSH interface. Choose extreme only for intentionally testing an agent with minimal tools. Choose ops for large-scale local file or repository retrieval followed by filtering or aggregation; ptc for batch orchestration of multiple tools and consolidating their results; standard for normal workflows where those modes offer no clear benefit.',
-	'Base the choice on the deliverable and work required, not keywords in isolation. Give a concrete brief reason (up to 120 characters) explaining the fit, without quoting private material. Omit the line only when there is no actionable task or not enough information to identify the workflow. Do not use standard as a catch-all for uncertainty. Keep the original rewrite status and text format after this line. Never put the recommendation inside the rewrite.',
-].join(' ');
-
-function splitModeAdvice(raw) {
-	const lines = raw.trimStart().split(/\r?\n/u);
-	const tagged = /^MODE_ADVICE(?:\s|:|$)/iu;
-	if (!tagged.test(lines[0])) return { text: raw };
-	const result = /^MODE_ADVICE[\t ]+(standard|ptc|ops|extreme|creative)[\t ]*\|[\t ]*(.+)$/u.exec(lines.shift());
-	const text = lines.filter((line) => !tagged.test(line.trimStart())).join('\n');
-	const reason = result?.[2].trim();
-	if (!reason || reason.length > 120 || /[\p{Cc}\p{Cf}]/u.test(reason)) return { text };
-	return { text, advice: { mode: result[1], reason } };
-}
-
 async function handle(scope, config, request, lifetime, windowCache) {
 	// Preferences may have changed since activation, so every read below - the
 	// timeout, the draft limits, routing, history and the system prompt - must
@@ -1365,11 +1286,12 @@ async function handle(scope, config, request, lifetime, windowCache) {
 			}
 		}
 
-		const wantsAdvice = payload?.wantModeAdvice === true && !history.hasContext;
+		const wantsAdvice = payload?.wantModeAdvice === true;
 		const directive = wantsAdvice ? REWRITE_ONLY_DIRECTIVE + '\n\n' + MODE_ADVICE_DIRECTIVE : REWRITE_ONLY_DIRECTIVE;
 		const raw = await generate(scope, effective, route, draft, history, images, signal, windowCache, sessionId, directive, files, fileNames);
 		const primary = wantsAdvice ? splitModeAdvice(raw) : { text: raw };
-		let advice = primary.advice;
+		let advice = strengthenHandoverAdvice(draft, primary.advice);
+		let skillAdvice = null;
 		let outcome = classifyEnhancementOutput(primary.text, effective.maxOutputChars);
 		let guard = '';
 		// A rewrite may never answer the user with a question. Cheapest repair first:
@@ -1394,6 +1316,7 @@ async function handle(scope, config, request, lifetime, windowCache) {
 				guard = usable ? 'legacy-fallback' : 'question-dropped';
 			}
 		}
+		outcome.text = preserveTypedFileReferences(draft, outcome.text);
 		if (!outcome.text) throw new EnhanceFailure('EMPTY', '模型没有返回可用的提示词，草稿保持不变。');
 		if (wantsAdvice && !advice && /\bdsh\b|deepseek harness/iu.test(draft) && /插件|\bplugin\b/iu.test(draft) && isProductInterfaceWork(draft)) {
 			advice = { mode: 'creative', reason: /\p{Script=Han}/u.test(draft) ? '任务要开发插件来修改 DSH 自身的界面。' : 'The task builds a plugin that changes the DSH interface itself.' };
@@ -1404,13 +1327,18 @@ async function handle(scope, config, request, lifetime, windowCache) {
 			&& !/批量|汇总|并行|\b(?:batch|parallel|aggregate)\b/iu.test(draft)) {
 			advice = { mode: 'standard', reason: /\p{Script=Han}/u.test(draft) ? '按顺序在同一课程平台操作，不需要批量编排工具。' : 'This is a sequential workflow on one course platform; it does not require batch tool orchestration.' };
 		}
-		if (guard !== 'question-dropped') outcome = await addDraftSkill(scope, sessionId, draft, fileNames, outcome, signal);
+		if (guard !== 'question-dropped') {
+			const skillResult = await addDraftSkill(scope, sessionId, draft, fileNames, outcome, signal);
+			outcome = skillResult.outcome;
+			skillAdvice = skillResult.skillAdvice;
+		}
 		signal.throwIfAborted();
 		return Response.json({
 			ok: true,
 			kind: outcome.kind,
 			text: outcome.text,
 			...(advice && guard !== 'question-dropped' ? { modeAdvice: advice } : {}),
+			...(skillAdvice && guard !== 'question-dropped' ? { skillAdvice } : {}),
 			...(guard ? { guard } : {}),
 			model: `${route.provider} / ${route.model}`,
 			// Consumed by the browser half to mark a context-aware rewrite.

@@ -1,6 +1,6 @@
 {
 	"name": "dsh-prompt-pilot",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Unofficial fork of dsh-prompt-rewriter: draft rewriting, mode advice, and tiered skill suggestions for DSH.",
 	"type": "module",
 	"icon": "icon.svg",
@@ -12,6 +12,7 @@
 	},
 	"files": [
 		"index.js",
+		"draft-advice.mjs",
 		"legacy-rules.mjs",
 		"intent-first-rules.mjs",
 		"workbuddy-rules.mjs",
