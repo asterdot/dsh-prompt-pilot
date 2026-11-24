@@ -73,14 +73,38 @@ window.__ModuleLoader__.load({
       '.dsh-pp_plane{display:block}',
       '.dsh-pp_plane.is-busy{animation:dsh-pp-fly 1.1s ease-in-out infinite}',
       '@keyframes dsh-pp-fly{0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(1.5px,-1.5px) rotate(6deg)}50%{transform:translate(0,-2.5px) rotate(0deg)}75%{transform:translate(-1.5px,-1.5px) rotate(-6deg)}100%{transform:translate(0,0) rotate(0deg)}}',
-      '@media (prefers-reduced-motion:reduce){.dsh-pp_plane.is-busy{animation:none}}',
+      '@media (prefers-reduced-motion:reduce){.dsh-pp_plane.is-busy{animation:none!important}.dsh-pp_button,.dsh-pp_skillCopy{transition:none!important}}',
       '.dsh-pp_sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}',
-      '.dsh-pp_statusFrame{position:absolute;bottom:calc(100% + 8px);right:0;width:320px;max-width:78vw;padding:10px 12px;border-radius:10px;border:1px solid var(--dsw-alias-border-secondary,rgba(127,127,127,.25));background:var(--dsw-alias-background-secondary,rgba(24,26,31,.92));color:var(--dsw-alias-text-primary,inherit);box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:12px;line-height:1.55;display:flex;flex-direction:column;gap:6px;z-index:30;backdrop-filter:blur(10px)}',
+      '.dsh-pp_statusFrame{color-scheme:light dark;position:absolute;bottom:calc(100% + 8px);right:0;width:320px;max-width:78vw;padding:10px 12px;border-radius:8px;border:1px solid var(--dsw-alias-border-secondary,#c6cbd3);background:var(--dsw-alias-background-secondary,#ffffff);color:var(--dsw-alias-text-primary,#20242b);box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:12px;line-height:1.55;display:flex;flex-direction:column;gap:6px;z-index:30;backdrop-filter:blur(10px)}',
+      '@media (prefers-color-scheme:dark){.dsh-pp_statusFrame{border-color:var(--dsw-alias-border-secondary,#454b55);background:var(--dsw-alias-background-secondary,#20242b);color:var(--dsw-alias-text-primary,#f1f3f6)}}',
       '.dsh-pp_statusFrame[data-tone="error"]{border-color:var(--dsw-alias-status-danger,#d5484d)}',
       '.dsh-pp_notice{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.dsh-pp_modeLine,.dsh-pp_skillLine{display:flex;align-items:baseline;gap:6px;min-width:0}',
       '.dsh-pp_modeName{font-weight:600;white-space:nowrap}',
-      '.dsh-pp_modeReason,.dsh-pp_skillNames{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.85}',
+      '.dsh-pp_modeReason,.dsh-pp_skillNames{min-width:0;overflow-wrap:anywhere;opacity:.85}',
+      '.dsh-pp_skillBox{display:grid;gap:6px;border-top:1px solid var(--dsw-alias-border-secondary,rgba(127,127,127,.2));padding-top:6px}',
+      '.dsh-pp_skillLine{align-items:flex-start}',
+      '.dsh-pp_skillTier{flex:0 0 auto;font-weight:600;opacity:.65}',
+      '.dsh-pp_skillNames{white-space:normal}',
+      '.dsh-pp_contextControls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:6px 12px;border-top:1px solid var(--dsw-alias-border-secondary,rgba(127,127,127,.2));padding-top:6px;max-width:min(720px,90vw)}',
+      '.dsh-pp_contextToggle{display:inline-flex;align-items:center;gap:5px;cursor:pointer}',
+      '.dsh-pp_controlGroup{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;min-width:0}',
+      '.dsh-pp_controlGroup>strong{font-size:11px;font-weight:600;opacity:.7}',
+      '.dsh-pp_countControl{display:inline-flex;align-items:center;gap:4px;font-size:11px;opacity:.82}',
+      '.dsh-pp_countControl input{width:4.5em;min-height:24px;border:1px solid var(--dsw-alias-border-secondary,rgba(127,127,127,.35));border-radius:5px;background:var(--dsw-alias-background-primary,transparent);color:inherit;padding:2px 4px}',
+      '.dsh-pp_contextCount{opacity:.65;font-variant-numeric:tabular-nums}',
+      '.dsh-pp_contextSub{display:flex;gap:8px;flex-wrap:wrap;padding-left:16px;font-size:11px;opacity:.85}',
+      '.dsh-pp_statusFrame{max-height:min(65vh,420px);overflow:auto}',
+      '.dsh-pp_button{flex:0 0 28px;visibility:visible}',
+      '.dsh-pp_plane.is-busy{animation:dsh-pp-pulse .9s ease-in-out infinite}',
+      '@keyframes dsh-pp-pulse{0%,100%{opacity:.55;transform:scale(.9)}50%{opacity:1;transform:scale(1.08)}}',
+      '.dsh-pp-settings{width:min(100%,760px);color:var(--dsw-alias-text-primary,inherit)}',
+      '.dsh-pp-settingsGroup{border:0;border-top:1px solid var(--dsw-alias-border-secondary,rgba(127,127,127,.18));padding:12px 0 0;margin:0}',
+      '.dsh-pp-settingsGroup legend{font-weight:650;padding:0 8px 0 0}',
+      '.dsh-pp-settingsRow{align-items:center;min-height:44px}',
+      '.dsh-pp-settingsHint{max-width:58ch}',
+      '.dsh-pp-settingsError{flex-basis:100%}',
+      '@media (max-width:560px){.dsh-pp_statusFrame{width:min(320px,calc(100vw - 24px));right:-4px}.dsh-pp-settingsRow{flex-direction:row;align-items:center}.dsh-pp-settingsCopy{flex-basis:100%}.dsh-pp-select{min-width:0;width:100%}}',
       '.dsh-pp_skillCopy{margin-left:auto;border:none;background:transparent;color:var(--dsw-alias-brand-primary,#4176e6);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:6px;white-space:nowrap}',
       '.dsh-pp_skillCopy:hover{background:var(--dsw-alias-fill-secondary,rgba(127,127,127,.14))}',
       // Settings page
@@ -166,6 +190,16 @@ window.__ModuleLoader__.load({
       'label.busy': '正在用当前模型增强提示词，点击可停止',
       'label.undo': '回退到增强前的提示词',
       'label.contextAware': '{base}（已参考本会话上下文）',
+      'context.group': '会话上下文',
+      'context.composerImages': '随提示词发送图片',
+      'context.composerFiles': '随提示词发送文件',
+      'context.includeImages': '发送图片内容',
+      'context.includeFileContents': '发送文件内容',
+      'context.imageCount': '数量',
+      'context.fileCount': '数量',
+      'context.enabled': '参考本会话',
+      'context.images': '图片 {count}',
+      'context.files': '文件内容 {count}',
       'shortcut.run': '增强提示词',
       'state.refused': '输入框没有接受替换，草稿保持不变。',
       'state.deferred': '消息正在发送，改写结果已保留，输入框空闲后自动写入。',
@@ -177,7 +211,13 @@ window.__ModuleLoader__.load({
       'state.imagesSkipped': '有 {count} 张图片未能读取，本次增强未参考它们。',
       'state.evidenceSkipped': '有 {count} 个附件未能读取，本次增强未参考它们。',
       'state.noRewrite': '这次没有改写',
-      'state.unchanged': '原稿已足够清晰，仅做了必要保留。',
+      'state.unchanged': '原稿已足够清晰，保持不变。',
+      'reason.rewrite': '已优化表达与要求结构。',
+      'reason.punctuation-only': '仅有标点或空白变化，已保留原稿。',
+      'reason.model-unchanged': '模型未提出实质改写，已保留原稿。',
+      'reason.question-trimmed': '已移除追问，只保留可用改写。',
+      'reason.legacy-fallback': '已用兼容规则完成改写。',
+      'reason.question-dropped': '未获得可用改写，已保留原稿。',
       'nav': '提示词领航',
       'mode.standard': '建议：标准模式',
       'mode.ptc': '建议：PTC 模式',
@@ -234,6 +274,16 @@ window.__ModuleLoader__.load({
       'label.busy': 'Enhancing the draft with the current model; click to stop',
       'label.undo': 'Restore the prompt from before enhancement',
       'label.contextAware': '{base} (used this session context)',
+      'context.group': 'Conversation context',
+      'context.composerImages': 'Composer images',
+      'context.composerFiles': 'Composer files',
+      'context.includeImages': 'Include image content',
+      'context.includeFileContents': 'Include file contents',
+      'context.imageCount': 'Count',
+      'context.fileCount': 'Count',
+      'context.enabled': 'Use conversation context',
+      'context.images': 'Images {count}',
+      'context.files': 'File contents {count}',
       'shortcut.run': 'Enhance prompt',
       'state.refused': 'The composer refused the replacement; the draft is unchanged.',
       'state.deferred': 'A message is in flight; the rewrite is kept and lands once the composer is idle.',
@@ -245,7 +295,13 @@ window.__ModuleLoader__.load({
       'state.imagesSkipped': '{count} image(s) could not be read; this enhancement did not use them.',
       'state.evidenceSkipped': '{count} attachment(s) could not be read; this enhancement did not use them.',
       'state.noRewrite': 'Nothing was rewritten this time.',
-      'state.unchanged': 'Your draft was already clear and was kept essentially unchanged.',
+      'state.unchanged': 'Your draft was clear enough and was kept unchanged.',
+      'reason.rewrite': 'Clarity and requirement structure were improved.',
+      'reason.punctuation-only': 'Only punctuation or spacing changed; the original was kept.',
+      'reason.model-unchanged': 'The model proposed no substantive rewrite; the original was kept.',
+      'reason.question-trimmed': 'Follow-up questions were removed; the usable rewrite was kept.',
+      'reason.legacy-fallback': 'The rewrite was completed with the compatibility rules.',
+      'reason.question-dropped': 'No usable rewrite was produced; the original was kept.',
       'nav': 'Prompt Pilot',
       'mode.standard': 'Suggested: Standard',
       'mode.ptc': 'Suggested: PTC',
@@ -535,7 +591,8 @@ window.__ModuleLoader__.load({
         const file = entry?.file;
         if (!file) { skipped++; continue; }
         const name = safeComposerFileName(file.name);
-        const namesOnly = policy?.values?.referenceFiles !== true;
+        const fileContents = policy?.values?.composerFiles ?? policy?.values?.referenceFiles;
+        const namesOnly = fileContents !== true;
         if (names.length < limitOr(limits.maxFileNames, 8)) names.push(name);
         else if (namesOnly) skipped++;
         if (namesOnly) continue;
@@ -698,10 +755,10 @@ window.__ModuleLoader__.load({
 
     /** One tier of skill names; renders nothing when the tier is empty. */
     const SkillTier = ({ label, names }) => {
-      if (!Array.isArray(names) || names.length === 0) return null;
+      const items = Array.isArray(names) ? names : [];
       return h('div', { className: 'dsh-pp_skillLine' },
         h('span', { className: 'dsh-pp_skillTier' }, label),
-        h('span', { className: 'dsh-pp_skillNames' }, names.join('、')),
+        h('span', { className: 'dsh-pp_skillNames' }, items.length ? items.join('、') : '—'),
       );
     };
 
@@ -709,10 +766,10 @@ window.__ModuleLoader__.load({
     const SkillStatus = ({ skillAdvice, t }) => {
       const [copyState, setCopyState] = useState('idle');
       const copy = async () => {
-        const names = [...(skillAdvice.likely ?? []), ...(skillAdvice.possible ?? [])];
-        if (names.length === 0) return;
+        const lines = [[t('skill.likely'), skillAdvice.likely ?? []], [t('skill.possible'), skillAdvice.possible ?? []]];
+        const text = lines.map(([label, names]) => `${label}: ${names.length ? names.join(' ') : '—'}`).join('\n');
         try {
-          await navigator.clipboard.writeText(names.join(' '));
+          await navigator.clipboard.writeText(text);
           setCopyState('copied');
         } catch {
           setCopyState('error');
@@ -764,6 +821,7 @@ window.__ModuleLoader__.load({
       // seat quiet.
       const [policy, setPolicy] = useState(null);
       const [willUseContext, setWillUseContext] = useState(false);
+      const [contextControls, setContextControls] = useState({enabled:true,images:false,files:false,composerImages:false,composerFiles:false,imageCount:2,fileCount:2,composerImageCount:2,composerFileCount:2});
       const [shortcutOn, setShortcutOn] = useState(false);
 
       useEffect(() => {
@@ -780,14 +838,28 @@ window.__ModuleLoader__.load({
               const body = await policyResponse.json();
               if (alive && body?.ok === true) {
                 setPolicy(body);
-                setWillUseContext(body.values?.referenceContext !== false);
-                setShortcutOn(body.values?.shortcutEnabled === true);
-                taskStore.setShortcutAllowed(body.values?.shortcutEnabled === true);
+                const values = body.values || {};
+                const enabled = values.contextEnabled ?? values.referenceContext ?? true;
+                const images = values.contextImages ?? false;
+                const files = values.contextFileContents ?? false;
+                const composerImages = values.composerImages ?? values.referenceImages ?? false;
+                const composerFiles = values.composerFiles ?? values.referenceFiles ?? false;
+                const imageCount = Number.isSafeInteger(values.contextImageCount) && values.contextImageCount >= 0 ? values.contextImageCount : 2;
+                const fileCount = Number.isSafeInteger(values.contextFileCount) && values.contextFileCount >= 0 ? values.contextFileCount : 2;
+                const composerImageCount = Number.isSafeInteger(values.composerImageCount) && values.composerImageCount >= 0 ? values.composerImageCount : 2;
+                const composerFileCount = Number.isSafeInteger(values.composerFileCount) && values.composerFileCount >= 0 ? values.composerFileCount : 2;
+                const shortcut = typeof values.shortcutEnabled === 'boolean' ? values.shortcutEnabled : false;
+                setWillUseContext(enabled);
+                setContextControls({enabled,images,files,composerImages,composerFiles,imageCount,fileCount,composerImageCount,composerFileCount});
+                setShortcutOn(shortcut);
+                taskStore.setShortcutAllowed(shortcut);
               }
             }
             if (contextResponse.ok) {
               const body = await contextResponse.json();
-              if (alive && body?.ok === true && body.hasContext === true) setWillUseContext((previous) => previous && true);
+              if (alive && body?.ok === true) {
+                setWillUseContext(body.hasContext === true);
+              }
             }
           } catch {
             // An unreadable policy costs only the context dot; the seat stays.
@@ -844,8 +916,22 @@ window.__ModuleLoader__.load({
           } else {
             const edits = segments.map((s,i) => ({...s, text:target[i], old:gaps[i]})).filter(s => s.text !== s.old);
             if (typeof inputActions?.insertText !== 'function' || (edits.length > 1 && !Number.isFinite(initial))) return { ok:false };
+            const applied = [];
+            const partialDraft = () => { let value=before; for(const done of applied)value=value.slice(0,done.start)+done.text+value.slice(done.end); return value; };
             for (const s of edits.reverse()) {
-              if (inputActions.insertText(s.text, { start:s.start, end:s.end, draftRev:revision() ?? beforeRev }) !== true) return { ok:false };
+              const expected = revision() ?? beforeRev;
+              if (inputActions.insertText(s.text, { start:s.start, end:s.end, draftRev:expected }) !== true) {
+                const currentRev = revision();
+                const currentDraft = latestDraft.current;
+                if (applied.length && currentDraft === partialDraft() && Number.isFinite(currentRev) && currentRev === expected) {
+                  for (const done of applied.slice().reverse()) {
+                    const rollbackRev=revision();
+                    if (!Number.isFinite(rollbackRev) || rollbackRev!==currentRev || inputActions.insertText(done.old,{start:done.start,end:done.start+done.text.length,draftRev:rollbackRev})!==true) break;
+                  }
+                }
+                return {ok:false};
+              }
+              applied.push(s);
             }
           }
           return { ok:true, produced, gaps, labels, rev:revision() };
@@ -878,7 +964,7 @@ window.__ModuleLoader__.load({
             const live = attachmentIds?.length ? await readComposerPolicy() : null;
             controller.signal.throwIfAborted();
             const [imageResult, fileResult] = await Promise.all([
-              readComposerImages(conversation, inputActions, attachmentIds, { ...live?.imageLimits, referenceImages: live?.values?.referenceImages === true }),
+              readComposerImages(conversation, inputActions, attachmentIds, { ...live?.imageLimits, referenceImages: (live?.values?.composerImages ?? live?.values?.referenceImages) === true }),
               readComposerFiles(conversation, inputActions, attachmentIds, live),
             ]);
             controller.signal.throwIfAborted();
@@ -926,6 +1012,7 @@ window.__ModuleLoader__.load({
             taskStore.patch(sessionId, { result:{ text, origin:before, originRev, mount:mount.current,
               projection:draftForModel(before, originOccurrences), attachments:JSON.stringify(attachmentIds),
               unchanged:body.kind === 'unchanged' && (text === before || text === draftForModel(before, originOccurrences)),
+              reason:typeof body.reason === 'string' ? t('reason.' + body.reason) : '',
               modeAdvice, skillAdvice }, contextAware:body.mode === 'context', restore:null });
           } catch (error) {
             if (controller.signal.aborted) {
@@ -959,17 +1046,18 @@ window.__ModuleLoader__.load({
         const finish = changes => taskStore.patch(sessionId, { result:null, restore:null, ...changes });
         if (!matches) return finish({ announce:t('state.stale') });
         const advice = { modeAdvice:firstDraft ? result.modeAdvice : null, skillAdvice:result.skillAdvice };
-        if (result.unchanged) return finish({ announce:t('state.unchanged'), restore:{ produced:draft, adviceRev:draftRev, ...advice } });
+        if (result.unchanged) return finish({ notice:t('state.unchanged') + (result.reason ? ' ' + result.reason : ''), announce:null, restore:{ produced:draft, adviceRev:draftRev, ...advice } });
         const receipt = replaceDraft(result.text, draft, draftRev);
         if (!receipt.ok) return finish({ failure:t('state.refused') });
-        finish({ restore:{ text:draft, produced:receipt.produced, inverse:receipt, pending:true, beforeRev:draftRev, ...advice } });
+        finish({ notice:result.reason || null, announce:null, restore:{ text:draft, produced:receipt.produced, inverse:receipt, pending:true, beforeRev:draftRev, ...advice } });
       }, [sessionId, result, phase, draft, draftRev]);
 
-      // A successful write is not an undo offer until the host echoes exactly
-      // the expected clipboard projection. A user edit is never adopted as it.
+      // Confirm the initial write before offering restore. Afterwards retain the
+      // original snapshot across manual text edits; every restore uses a fresh CAS.
       useEffect(() => {
         if (!restore || taskStore.ensure(sessionId).restore !== restore) return;
         if (restore.pending && draft === restore.text && draftRev === restore.beforeRev) return;
+        if (!restore.pending && restore.inverse) return;
         if (draft !== restore.produced || (!restore.pending && restore.adviceRev !== draftRev) || (restore.pending && Number.isFinite(restore.inverse.rev) && restore.inverse.rev !== draftRev)) {
           taskStore.patch(sessionId, {restore:null});
         } else if (restore.pending) {
@@ -980,7 +1068,7 @@ window.__ModuleLoader__.load({
       if (typeof inputActions?.insertText !== 'function' && typeof inputActions?.setDraft !== 'function') return null;
 
 
-      const visible = busy || canUndo || failure !== null || notice !== null || draft.trim().length > 0;
+      const visible = true;
       if (!visible || phase !== 'plain') return null;
 
       const mode = busy ? 'busy' : canUndo ? 'undo' : failure !== null ? 'error' : 'idle';
@@ -996,6 +1084,15 @@ window.__ModuleLoader__.load({
       const title = contextAware && !busy ? t('label.contextAware', { base: baseTitle }) : baseTitle;
       const status = announce !== null ? announce : title;
       const showContextMark = willUseContext && !busy && !canUndo;
+      const saveContext = async patch => {
+        const apiKeys = {enabled:'contextEnabled',images:'contextImages',files:'contextFileContents',imageCount:'contextImageCount',fileCount:'contextFileCount',composerImages:'composerImages',composerFiles:'composerFiles',composerImageCount:'composerImageCount',composerFileCount:'composerFileCount'};
+        const values = Object.fromEntries(Object.entries(patch).map(([key,value])=>[apiKeys[key] ?? key,value]));
+        const before=contextControls;
+        setContextControls(v=>({...v,...patch}));
+        try { const response=await fetch('/api/prompt-pilot/settings?scope=composer',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify(values)}); const body=await response.json(); if(!response.ok||body?.ok!==true) throw Error(); if(body.values) setPolicy(v=>({...v,values:{...v?.values,...body.values}})); } catch { setContextControls(v=>{const restored={...v};for(const key of Object.keys(patch))if(Object.is(v[key],patch[key]))restored[key]=before[key];return restored;}); }
+      };
+      const contextControl = (key, label, count) => h('label', {className:'dsh-pp_contextToggle'}, h('input', {type:'checkbox',checked:contextControls[key] === true,disabled:busy || (['images','files'].includes(key) && !contextControls.enabled),onChange:event=>saveContext({[key]:event.target.checked})}), h('span',null,t(label,{count})));
+      const countControl = (key,label) => h('label',{className:'dsh-pp_countControl'},h('span',null,t(label)),h('input',{type:'number',min:0,step:1,value:contextControls[key],disabled:busy,onChange:event=>{const n=Number(event.target.value);if(Number.isSafeInteger(n)&&n>=0)saveContext({[key]:n});}}));
 
       return h('div', {
         className: 'dsh-pp_root',
@@ -1018,15 +1115,24 @@ window.__ModuleLoader__.load({
         busy ? h(PilotIcon, { size: 16 }) : canUndo ? h(UndoIcon, { size: 16 }) : failure !== null ? h(RetryIcon, { size: 16 }) : h(PilotIcon, { size: 16 }),
       ),
       ),
+      restore?.inverse && !restore.pending && !busy && !canUndo ? h('button', {type:'button',className:'dsh-pp_skillCopy',onClick:()=>{
+        if (taskStore.ensure(sessionId).restore !== restore) return;
+        const done=replaceDraft(restore.text,draft,draftRev,restore.inverse);
+        taskStore.patch(sessionId,done.ok ? {restore:null,notice:null,failure:null} : {failure:t('state.refused')});
+      }},t('label.undo')) : null,
+      h('div',{className:'dsh-pp_contextControls'},
+        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.group')),contextControl('enabled','context.enabled'),contextControls.enabled&&h('div',{className:'dsh-pp_contextSub'},contextControl('images','context.images'),countControl('imageCount','context.imageCount'),contextControl('files','context.files'),countControl('fileCount','context.fileCount'))),
+        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.composerImages')),contextControl('composerImages','context.includeImages'),countControl('composerImageCount','context.imageCount')),
+        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.composerFiles')),contextControl('composerFiles','context.includeFileContents'),countControl('composerFileCount','context.fileCount'))),
       (() => {
         const validRestore = !busy && restore !== null && ((restore.pending === true && restore.pendingDraft === draft) || (restore.pending !== true && restore.produced === draft && restore.adviceRev === draftRev));
         const advice = firstDraft === true && validRestore ? restore.modeAdvice : null;
         const skillAdvice = validRestore ? restore.skillAdvice : null;
+        const visibleSkillAdvice = skillAdvice ?? {likely:[],possible:[]};
         const message = failure !== null ? failure : (notice !== null && !busy ? notice : null);
-        if (advice === null && skillAdvice === null && message === null) return null;
         return h('div', { className: 'dsh-pp_statusFrame', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : 'status' },
           advice !== null ? h(ModeStatus, { mode: advice.mode, reason: advice.reason, t }) : null,
-          skillAdvice !== null ? h(SkillStatus, { skillAdvice, t }) : null,
+          h(SkillStatus, { skillAdvice:visibleSkillAdvice, t }),
           message !== null ? h('span', { className: 'dsh-pp_notice', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : undefined, title: message }, message) : null,
         );
       })(),
@@ -1220,7 +1326,7 @@ window.__ModuleLoader__.load({
     }
 
     function SettingsSection({ t, getRemote, getShortcuts }) {
-      const tr = key => t('prefs.' + key);
+      const tr = key => key.startsWith('context.') ? t(key) : key === 'composer.images' ? t('context.composerImages') : key === 'composer.files' ? t('context.composerFiles') : t('prefs.' + key);
       const [data,setData] = useState(null), [issue,setIssue] = useState(null), [attempt,reload] = useState(0);
       const [notice,report] = useState(''), [models,setModels] = useState(null), [recording,record] = useState(false);
       const [bindingError,setBindingError] = useState('');
@@ -1240,10 +1346,10 @@ window.__ModuleLoader__.load({
         catch(err){if(!signal.aborted){report('');setIssue({message:err.message,patch});}}
         finally {writing.current=false;}
       }
-      const values=data?.values, busy=notice==='saving';
+      const values=data?.values ? {contextEnabled:data.values.referenceContext??true,composerImages:data.values.referenceImages??false,composerFiles:data.values.referenceFiles??false,contextImages:false,contextFileContents:false,referenceContext:true,referenceImages:false,referenceFiles:false,shortcutEnabled:false,...data.values} : null, busy=notice==='saving';
       const link=(href,key)=>h('a',{href,target:'_blank',rel:'noopener noreferrer',className:'dsh-pp-feedbackLink'},tr(key));
       const toggle=(key,title,hint)=>h('label',{className:'dsh-pp-settingsRow',key},h('input',{type:'checkbox',checked:!!values[key],onChange:e=>save({[key]:e.target.checked})}),h('span',null,h('strong',null,tr(title)),hint&&h('span',{className:'dsh-pp-settingsHint',style:{display:'block'}},tr(hint))));
-      const group=(title,...children)=>h('fieldset',{disabled:busy,style:{minWidth:0}},h('legend',null,tr(title)),...children);
+      const group=(title,...children)=>h('fieldset',{className:'dsh-pp-settingsGroup',disabled:busy},h('legend',null,tr(title)),...children);
       const select=(label,value,onChange,choices,disabled=false)=>h('label',{className:'dsh-pp-settingsRow'},tr(label),h('select',{className:'dsh-pp-select',value,onChange:e=>onChange(e.target.value),disabled},choices));
       const button=(label,action,props={})=>h('button',{type:'button',onClick:action,...props},label);
       const modelChoices=[h('option',{key:'session',value:''},tr('follow'))];
@@ -1253,9 +1359,11 @@ window.__ModuleLoader__.load({
         h('div',{role:'status','aria-live':'polite'},notice?tr(notice):!values&&!issue?tr('loading'):''),
         values&&group('strategy',select('strategy',values.ruleSet,id=>save({ruleSet:id}),['legacy','intent-first','workbuddy'].map(k=>h('option',{key:k,value:k},tr(k)))),h('p',null,tr(values.ruleSet+'Hint'))),
         values&&group('model',toggle('useCustomModel','fixed'),select('model',values.enhanceModel?JSON.stringify([values.enhanceProvider,values.enhanceModel]):'',raw=>{const [enhanceProvider,enhanceModel]=raw?JSON.parse(raw):['',''];save({enhanceProvider,enhanceModel})},modelChoices,!values.useCustomModel||!models),models===false&&h('p',null,tr('catalog'),' ',button(tr('retry'),()=>reload(v=>v+1)))),
-        values&&group('privacy',toggle('referenceContext','context','contextHint'),toggle('referenceImages','images','imagesHint'),toggle('referenceFiles','files','filesHint')),
+        values&&group('context.group',toggle('contextEnabled','context.enabled','contextHint'),values.contextEnabled&&h('div',{className:'dsh-pp_contextSub'},toggle('contextImages','context.images'),h('label',{className:'dsh-pp_countControl'},tr('context.imageCount'),h('input',{type:'number',min:0,max:4,step:1,value:values.contextImageCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=4)save({contextImageCount:n})}})),toggle('contextFileContents','context.files'),h('label',{className:'dsh-pp_countControl'},tr('context.fileCount'),h('input',{type:'number',min:0,max:2,step:1,value:values.contextFileCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=2)save({contextFileCount:n})}}))),
+        values&&group('composer.images',toggle('composerImages','context.includeImages'),h('label',{className:'dsh-pp_countControl'},tr('context.imageCount'),h('input',{type:'number',min:0,max:4,step:1,value:values.composerImageCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=4)save({composerImageCount:n})}}))),
+        values&&group('composer.files',toggle('composerFiles','context.includeFileContents','filesHint'),h('label',{className:'dsh-pp_countControl'},tr('context.fileCount'),h('input',{type:'number',min:0,max:2,step:1,value:values.composerFileCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=2)save({composerFileCount:n})}}))),
         values&&group('shortcut',toggle('shortcutEnabled','enabled'),button(recording?tr('escape'):shortcut.keys||tr('record'),()=>{record(!recording);setBindingError('')},{disabled:!values.shortcutEnabled,onKeyDown:e=>{if(!recording)return;e.preventDefault();e.stopPropagation();if(e.code==='Escape'){record(false);return;}if(BARE_MODIFIERS.test(e.code))return;record(false);shortcut.assign(comboFromEvent(e)).then(setBindingError);}}),button(tr('reset'),()=>shortcut.reset().then(setBindingError),{disabled:!values.shortcutEnabled||shortcut.isDefault}),bindingError&&h('p',{role:'alert'},bindingError)),
-        !!data?.changelog?.length&&h('section',null,h('h3',null,tr('notes')),data.changelog.map(v=>h('details',{key:v.version},h('summary',null,'v'+v.version),h('ul',null,v.items.map((s,i)=>h('li',{key:i},s)))))));
+        !!data?.changelog?.length&&h('section',null,h('h3',null,tr('notes')),data.changelog.map(v=>h('details',{key:v.version},h('summary',null,'v'+v.version),h('ul',null,v.items.map((s,i)=>h('li',{key:i},s))))))));
     }
 
     // ======================================================================

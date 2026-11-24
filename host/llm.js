@@ -84,8 +84,8 @@ export async function generate(scope, config, route, draft, history, images, sig
     try { call = await llm.prepareCall(options, signal); }
     catch (err) { signal?.throwIfAborted(); throw adapterFailure(err, '模型准备失败'); }
     signal?.throwIfAborted();
+    // Each enhancement is an isolated call; never attach a provider session id.
     const request = { ...call.config, messages, system, signal };
-    if (sessionId !== undefined && !/deepseek/i.test(provider)) request.sessionId = sessionId;
     const result = await readAttempt(call.stream(request), signal, config.maxOutputChars);
     if ('raw' in result) return result.raw;
     thought = result.thought;

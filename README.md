@@ -14,7 +14,7 @@
 
 ```sh
 npm run pack
-dsh plugin --profile desktop add "/absolute/path/to/dist/dsh-prompt-pilot-2.0.0.tgz"
+dsh plugin --profile desktop add "/absolute/path/to/dist/dsh-prompt-pilot-2.1.0.tgz"
 ```
 
 如果使用 web，把 `desktop` 换成 `web`。如果 `dsh` 不在 PATH，改用安装目录中的 DSH CLI。升级已有 Prompt Pilot 时，在同一个配置中用新版包重复 `add`，重启 DSH，检查插件设置中的版本、模型和引用开关。若同时装有 `dsh-prompt-rewriter`，先停用其中一个，避免出现两个按钮；不要假设不同插件之间会迁移偏好。
@@ -23,13 +23,11 @@ dsh plugin --profile desktop add "/absolute/path/to/dist/dsh-prompt-pilot-2.0.0.
 
 默认使用会话模型。若启用 `useCustomModel`，请核对 `enhanceProvider` 和 `enhanceModel`。服务商可能是远程服务，**增强发生在发送聊天消息之前**。涉及敏感材料时，应先检查草稿、附件名、模型和下列设置。
 
-| 设置（默认） | 实际作用 |
-|---|---|
-| `referenceFiles`（开） | 可参考输入框所附的文件；最多 2 个，每个 5 MiB，文本预览最多 6000 字符。关闭后不传文件内容，但仍可传最多 8 个文件名；草稿内手写的路径也仍是文本。 |
-| `referenceImages`（关） | 开启后，符合宿主附件服务限额的输入框图片可作为模型输入。无法处理或超限的附件会跳过。 |
-| `referenceContext`（开） | 从当前会话内存记录中，优先选取最近的消息，按预算裁剪；默认最多 24 条、每条 4000 字符、历史预算 6000 token。关闭后不将这些历史正文加入改写。判断是否为首条消息时仍可检查本机会话日志；这个检查不是把日志作为模型输入。 |
-| `shortcutEnabled`（关） | 按需开启快捷键；不开启也可以点击按钮。 |
-| `ruleSet`（`legacy`） | 还可选择 `intent-first` 或 `workbuddy`。切换规则不等于更换模型。 |
+设置页提供改写方式（`ruleSet`，默认 `legacy`；另有 `intent-first`、`workbuddy`）、固定模型开关（`useCustomModel`，默认关）和模型选择（`enhanceProvider` / `enhanceModel`；默认跟随当前会话）。上下文与附件引用可独立控制：`referenceContext`（默认开）决定是否从当前会话的内存记录取文本；`referenceImages`（关）允许读取本次草稿所附图片；`composerFiles`（关）控制本次草稿文件，`referenceFiles`（默认关）是旧版文件开关的兼容字段，关闭内容读取时仍可能发送最多 8 个文件名。快捷键 `shortcutEnabled` 默认关闭；按钮仍可用。
+
+输入框按钮附近的上下文控件还可单独控制草稿图片和文件（`composerImages`、`composerFiles`，均默认关），以及历史图片/文件文本（`contextImages`、`contextFileContents`，均默认关）。数量默认分别为 2；图片数量最多 4，文件数量最多 2。图片控件遵从宿主附件服务限额：默认单图最多 5,000,000 bytes、每条消息最多 4 张且图片总量最多 10,000,000 bytes；实际宿主限额优先。图片送入请求前由附件服务处理为最大 1024×1024、最大 1 MiB 的请求内容。文件最多 2 个、每个 5 MiB；文本预览最多 6000 字符，文件名最多 8 个（名称会在关闭内容读取时保留）。超限或无法读取的附件会跳过。
+
+上下文文字只从当前会话的内存记录读取，不从磁盘会话日志取作模型上下文。系统根据草稿词项相关性选取消息，最多 24 条、每条最多 4000 字符，并受默认 6000 token 历史预算及模型上下文窗口 5% 上限约束；预算会裁剪内容，因此不是完整历史。首条消息状态探测也只使用当前内存记录，不扫描磁盘日志。每次增强都是独立、无状态的模型调用：不附带 provider session id，不保留跨请求模型会话。
 
 ## 本地验证
 

@@ -13,6 +13,15 @@ export const SETTING_KEYS = Object.freeze([
   'useCustomModel',
   'enhanceProvider',
   'enhanceModel',
+  'contextEnabled',
+  'contextImages',
+  'contextFileContents',
+  'composerImages',
+  'composerFiles',
+  'contextImageCount',
+  'contextFileCount',
+  'composerImageCount',
+  'composerFileCount',
   'referenceImages',
   'referenceFiles',
   'referenceContext',
@@ -97,10 +106,24 @@ export function readPreferences(ctx, namespace, config) {
     if (key === 'ruleSet') return RULE_SET_VALUES.has(value) ? value : fallback;
     return typeof value === 'string' ? value : fallback;
   };
+  const count = (key, fallback) => {
+    const value = stored?.[key];
+    const max = key.toLowerCase().includes('image') ? 4 : 2;
+    return Number.isFinite(value) ? Math.max(0, Math.min(max, Math.floor(value))) : fallback;
+  };
   return {
     useCustomModel: pick('useCustomModel', config.useCustomModel),
     enhanceProvider: pick('enhanceProvider', config.enhanceProvider),
     enhanceModel: pick('enhanceModel', config.enhanceModel),
+    contextEnabled: pick('contextEnabled', pick('referenceContext', config.contextEnabled)),
+    contextImages: pick('contextImages', config.contextImages),
+    contextFileContents: pick('contextFileContents', config.contextFileContents),
+    composerImages: pick('composerImages', pick('referenceImages', config.composerImages)),
+    composerFiles: pick('composerFiles', pick('referenceFiles', config.referenceFiles)),
+    contextImageCount: count('contextImageCount', config.contextImageCount),
+    contextFileCount: count('contextFileCount', config.contextFileCount),
+    composerImageCount: count('composerImageCount', config.composerImageCount),
+    composerFileCount: count('composerFileCount', config.composerFileCount),
     referenceImages: pick('referenceImages', config.referenceImages),
     referenceFiles: pick('referenceFiles', config.referenceFiles),
     referenceContext: pick('referenceContext', config.referenceContext),
@@ -161,7 +184,7 @@ export async function handleSettings(ctx, config, request) {
   for (const key of SETTING_KEYS) {
     if (!Object.hasOwn(input, key)) continue;
     const value = input[key];
-    if (typeof value !== typeof config[key] || (key === 'ruleSet' && !RULE_SET_VALUES.has(value))) {
+    if ((key.endsWith('Count') ? typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > (key.toLowerCase().includes('image') ? 4 : 2) : typeof value !== typeof config[key]) || (key === 'ruleSet' && !RULE_SET_VALUES.has(value))) {
       return failure('BAD_REQUEST', '设置项无效：' + key);
     }
     patch[key] = typeof value === 'string' ? value.trim() : value;

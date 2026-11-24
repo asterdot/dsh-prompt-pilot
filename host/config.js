@@ -26,12 +26,17 @@ export const DEFAULTS = Object.freeze({
   enhanceProvider: '',
   enhanceModel: '',
   useCustomModel: false,
-  // Reading composer images costs tokens and is opt-in.
-  referenceImages: false,
-  // File content is evidence only; two small files per enhancement at most.
-  referenceFiles: true,
-  // Context-aware enhancement is the shipped default.
   referenceContext: true,
+  contextImages: false,
+  contextFileContents: false,
+  composerImages: false,
+  composerFiles: false,
+  contextImageCount: 2,
+  contextFileCount: 2,
+  composerImageCount: 2,
+  composerFileCount: 2,
+  referenceImages: false,
+  referenceFiles: false,
   // A plugin must not claim a global key unless the user opts in.
   shortcutEnabled: false,
   ruleSet: RULE_SET_LEGACY,
@@ -82,6 +87,11 @@ export function optionalBoolean(value, fallback) {
   return typeof value === 'boolean' ? value : fallback;
 }
 
+function boundedCount(value, fallback, max) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, Math.min(max, Math.floor(number))) : fallback;
+}
+
 /**
  * Normalize the row's config without trusting it: an unknown or malformed field
  * falls back to its default instead of disabling the plugin.
@@ -100,9 +110,18 @@ export function resolveConfig(raw) {
     enhanceProvider: optionalString(source.enhanceProvider, DEFAULTS.enhanceProvider),
     enhanceModel: optionalString(source.enhanceModel, DEFAULTS.enhanceModel),
     useCustomModel: optionalBoolean(source.useCustomModel, DEFAULTS.useCustomModel),
+    referenceContext: optionalBoolean(source.contextEnabled ?? source.referenceContext, DEFAULTS.referenceContext),
+    contextEnabled: optionalBoolean(source.contextEnabled ?? source.referenceContext, DEFAULTS.referenceContext),
+    contextImages: optionalBoolean(source.contextImages, DEFAULTS.contextImages),
+    contextFileContents: optionalBoolean(source.contextFileContents, DEFAULTS.contextFileContents),
+    composerImages: optionalBoolean(source.composerImages ?? source.referenceImages, DEFAULTS.composerImages),
+    composerFiles: optionalBoolean(source.composerFiles ?? source.referenceFiles, DEFAULTS.composerFiles),
+    contextImageCount: boundedCount(source.contextImageCount, DEFAULTS.contextImageCount, 4),
+    contextFileCount: boundedCount(source.contextFileCount, DEFAULTS.contextFileCount, 2),
+    composerImageCount: boundedCount(source.composerImageCount, DEFAULTS.composerImageCount, 4),
+    composerFileCount: boundedCount(source.composerFileCount, DEFAULTS.composerFileCount, 2),
     referenceImages: optionalBoolean(source.referenceImages, DEFAULTS.referenceImages),
-    referenceFiles: optionalBoolean(source.referenceFiles, DEFAULTS.referenceFiles),
-    referenceContext: optionalBoolean(source.referenceContext, DEFAULTS.referenceContext),
+    referenceFiles: optionalBoolean(source.referenceFiles, source.composerFiles ?? DEFAULTS.referenceFiles),
     shortcutEnabled: optionalBoolean(source.shortcutEnabled, DEFAULTS.shortcutEnabled),
     ruleSet: RULE_SET_VALUES.has(source.ruleSet) ? source.ruleSet : DEFAULTS.ruleSet,
   };
