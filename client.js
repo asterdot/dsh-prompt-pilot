@@ -177,6 +177,8 @@ window.__ModuleLoader__.load({
       '.dsh-pp_controlGroup{display:grid;gap:6px;overflow-wrap:anywhere}.dsh-pp_contextSub{display:grid;gap:6px}',
       '.dsh-pp_statusFrame{position:static;width:260px;max-width:calc(100vw - 64px);box-sizing:border-box;box-shadow:none;backdrop-filter:none;z-index:auto;max-height:40vh}',
       '.dsh-pp_notice{white-space:normal;overflow-wrap:anywhere}',
+      '.dsh-pp_button[data-busy="true"]{background:var(--dsw-alias-brand-primary,#315fca);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}',
+      '.dsh-pp_button[data-busy="true"] .is-busy{animation:none}',
     ].join('\n');
 
     const installStyles = () => {
@@ -195,6 +197,7 @@ window.__ModuleLoader__.load({
     const NS = 'prompt-pilot';
 
     const ZH_DICT = {
+      'prefs.running': '停止增强',
       'label.idle': '把草稿改写得更清楚，保留你的原始要求',
       'label.busy': '正在用当前模型增强提示词，点击可停止',
       'label.undo': '回退到增强前的提示词',
@@ -280,6 +283,7 @@ window.__ModuleLoader__.load({
     };
 
     const EN_DICT = {
+      'prefs.running': 'Stop enhancing',
       'label.idle': 'Make the draft clearer while preserving your requirements',
       'label.busy': 'Enhancing the draft with the current model; click to stop',
       'label.undo': 'Restore the prompt from before enhancement',
@@ -607,7 +611,7 @@ window.__ModuleLoader__.load({
         if (names.length < limitOr(limits.maxFileNames, 8)) names.push(name);
         else if (namesOnly) skipped++;
         if (namesOnly) continue;
-        if (files.length >= limitOr(limits.maxFilesPerMessage, 2)) { skipped++; continue; }
+        if (files.length >= Math.min(limitOr(limits.maxFilesPerMessage, 2), limitOr(policy?.values?.composerFileCount, 2))) { skipped++; continue; }
         try {
           const bytes = await readBoundedComposerBytes(file, limitOr(limits.maxFileBytes, 5242880));
           const mediaType = file.type || 'application/octet-stream';
@@ -830,10 +834,10 @@ window.__ModuleLoader__.load({
       // Composer policy and context status are polled as a pair: both come from
       // the host, both only matter between runs, and one fetch each keeps the
       // seat quiet.
-      const [policy, setPolicy] = useState(null);
+
       const [willUseContext, setWillUseContext] = useState(false);
-      const [contextControls, setContextControls] = useState({enabled:true,images:false,files:false,composerImages:false,composerFiles:false,imageCount:2,fileCount:2,composerImageCount:2,composerFileCount:2});
-      const [shortcutOn, setShortcutOn] = useState(false);
+
+      const contextEnabledRef = useRef(false);
 
       useEffect(() => {
         let alive = true;
@@ -848,28 +852,16 @@ window.__ModuleLoader__.load({
             if (policyResponse.ok) {
               const body = await policyResponse.json();
               if (alive && body?.ok === true) {
-                setPolicy(body);
                 const values = body.values || {};
-                const enabled = values.contextEnabled ?? values.referenceContext ?? true;
-                const images = values.contextImages ?? false;
-                const files = values.contextFileContents ?? false;
-                const composerImages = values.composerImages ?? values.referenceImages ?? false;
-                const composerFiles = values.composerFiles ?? values.referenceFiles ?? false;
-                const imageCount = Number.isSafeInteger(values.contextImageCount) && values.contextImageCount >= 0 ? values.contextImageCount : 2;
-                const fileCount = Number.isSafeInteger(values.contextFileCount) && values.contextFileCount >= 0 ? values.contextFileCount : 2;
-                const composerImageCount = Number.isSafeInteger(values.composerImageCount) && values.composerImageCount >= 0 ? values.composerImageCount : 2;
-                const composerFileCount = Number.isSafeInteger(values.composerFileCount) && values.composerFileCount >= 0 ? values.composerFileCount : 2;
-                const shortcut = typeof values.shortcutEnabled === 'boolean' ? values.shortcutEnabled : false;
-                setWillUseContext(enabled);
-                setContextControls({enabled,images,files,composerImages,composerFiles,imageCount,fileCount,composerImageCount,composerFileCount});
-                setShortcutOn(shortcut);
+                contextEnabledRef.current = (values.contextEnabled ?? values.referenceContext ?? true) === true;
+                const shortcut = values.shortcutEnabled === true;
                 taskStore.setShortcutAllowed(shortcut);
               }
             }
             if (contextResponse.ok) {
               const body = await contextResponse.json();
               if (alive && body?.ok === true) {
-                setWillUseContext(body.hasContext === true);
+                setWillUseContext(contextEnabledRef.current && body.hasContext === true);
               }
             }
           } catch {
@@ -975,7 +967,7 @@ window.__ModuleLoader__.load({
             const live = attachmentIds?.length ? await readComposerPolicy() : null;
             controller.signal.throwIfAborted();
             const [imageResult, fileResult] = await Promise.all([
-              readComposerImages(conversation, inputActions, attachmentIds, { ...live?.imageLimits, referenceImages: (live?.values?.composerImages ?? live?.values?.referenceImages) === true }),
+              readComposerImages(conversation, inputActions, attachmentIds, { ...live?.imageLimits, maxImagesPerMessage:Math.min(limitOr(live?.imageLimits?.maxImagesPerMessage,4),limitOr(live?.values?.composerImageCount,2)), referenceImages: (live?.values?.composerImages ?? live?.values?.referenceImages) === true }),
               readComposerFiles(conversation, inputActions, attachmentIds, live),
             ]);
             controller.signal.throwIfAborted();
@@ -1095,15 +1087,7 @@ window.__ModuleLoader__.load({
       const title = contextAware && !busy ? t('label.contextAware', { base: baseTitle }) : baseTitle;
       const status = announce !== null ? announce : title;
       const showContextMark = willUseContext && !busy && !canUndo;
-      const saveContext = async patch => {
-        const apiKeys = {enabled:'contextEnabled',images:'contextImages',files:'contextFileContents',imageCount:'contextImageCount',fileCount:'contextFileCount',composerImages:'composerImages',composerFiles:'composerFiles',composerImageCount:'composerImageCount',composerFileCount:'composerFileCount'};
-        const values = Object.fromEntries(Object.entries(patch).map(([key,value])=>[apiKeys[key] ?? key,value]));
-        const before=contextControls;
-        setContextControls(v=>({...v,...patch}));
-        try { const response=await fetch('/api/prompt-pilot/settings?scope=composer',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify(values)}); const body=await response.json(); if(!response.ok||body?.ok!==true) throw Error(); if(body.values) setPolicy(v=>({...v,values:{...v?.values,...body.values}})); } catch { setContextControls(v=>{const restored={...v};for(const key of Object.keys(patch))if(Object.is(v[key],patch[key]))restored[key]=before[key];return restored;}); }
-      };
-      const contextControl = (key, label, count) => h('label', {className:'dsh-pp_contextToggle'}, h('input', {type:'checkbox',checked:contextControls[key] === true,disabled:busy || (['images','files'].includes(key) && !contextControls.enabled),onChange:event=>saveContext({[key]:event.target.checked})}), h('span',null,t(label)));
-      const countControl = (key,label) => h('label',{className:'dsh-pp_countControl'},h('span',null,t(label)),h('input',{type:'number',min:0,step:1,value:contextControls[key],disabled:busy,onChange:event=>{const n=Number(event.target.value);if(Number.isSafeInteger(n)&&n>=0)saveContext({[key]:n});}}));
+
 
       return h('div', {
         className: 'dsh-pp_root',
@@ -1123,19 +1107,16 @@ window.__ModuleLoader__.load({
         onClick: busy ? () => run() : canUndo ? () => undo() : () => run(),
       },
       h('span', { className: 'dsh-pp_plane' + (busy ? ' is-busy' : '') },
-        busy ? h(PilotIcon, { size: 16 }) : canUndo ? h(UndoIcon, { size: 16 }) : failure !== null ? h(RetryIcon, { size: 16 }) : h(PilotIcon, { size: 16 }),
+        busy ? h(Icon, { size:16 }, h('rect',{x:6,y:6,width:12,height:12,rx:2,fill:'currentColor',stroke:'none'})) : canUndo ? h(UndoIcon, { size: 16 }) : failure !== null ? h(RetryIcon, { size: 16 }) : h(PilotIcon, { size: 16 }),
       ),
-      h('span',null,t('shortcut.run')),
+      h('span',null,busy ? t('prefs.running') : t('shortcut.run')),
       ),
       restore?.inverse && !restore.pending && !busy && !canUndo ? h('button', {type:'button',className:'dsh-pp_skillCopy',onClick:()=>{
         if (taskStore.ensure(sessionId).restore !== restore) return;
         const done=replaceDraft(restore.text,draft,draftRev,restore.inverse);
         taskStore.patch(sessionId,done.ok ? {restore:null,notice:null,failure:null} : {failure:t('state.refused')});
       }},t('label.undo')) : null,
-      h('details',{className:'dsh-pp_references',onKeyDown:event=>{if(event.key==='Escape')event.currentTarget.open=false;}},h('summary',null,t('prefs.privacy')),h('div',{className:'dsh-pp_contextControls'},
-        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.group')),contextControl('enabled','context.enabled'),contextControls.enabled&&h('div',{className:'dsh-pp_contextSub'},contextControl('images','context.images'),contextControls.images&&countControl('imageCount','context.imageCount'),contextControl('files','context.files'),contextControls.files&&countControl('fileCount','context.fileCount'))),
-        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.composerImages')),contextControl('composerImages','context.includeImages'),contextControls.composerImages&&countControl('composerImageCount','context.imageCount')),
-        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.composerFiles')),contextControl('composerFiles','context.includeFileContents'),contextControls.composerFiles&&countControl('composerFileCount','context.fileCount')))),
+
       (() => {
         const validRestore = !busy && restore !== null && ((restore.pending === true && restore.pendingDraft === draft) || (restore.pending !== true && restore.produced === draft && restore.adviceRev === draftRev));
         const advice = firstDraft === true && validRestore ? restore.modeAdvice : null;
@@ -1355,7 +1336,7 @@ window.__ModuleLoader__.load({
       async function save(patch) {
         if(writing.current || !life.current || life.current.signal.aborted)return;
         const {signal}=life.current; writing.current=true; report('saving');setIssue(null);
-        try {const result=await preferencesRequest(signal,patch); if(!signal.aborted){setData(prev=>({...prev,values:{...prev.values,...result.values}})); report('saved');}}
+        try {const result=await preferencesRequest(signal,patch); if(!signal.aborted){setData(prev=>({...prev,values:{...prev.values,...result.values}})); taskStore.setShortcutAllowed(result.values.shortcutEnabled === true); report('saved');}}
         catch(err){if(!signal.aborted){report('');setIssue({message:err.message,patch});}}
         finally {writing.current=false;}
       }
@@ -1371,10 +1352,10 @@ window.__ModuleLoader__.load({
         issue&&h('div',{role:'alert'},h('p',null,tr(issue.patch?'failure':'loadError')+' '+issue.message),button(tr('retry'),()=>issue.patch?save(issue.patch):reload(v=>v+1))),
         h('div',{role:'status','aria-live':'polite'},notice?tr(notice):!values&&!issue?tr('loading'):''),
         values&&group('strategy',select('strategy',values.ruleSet,id=>save({ruleSet:id}),['legacy','intent-first','workbuddy'].map(k=>h('option',{key:k,value:k},tr(k)))),h('p',null,tr(values.ruleSet+'Hint'))),
-        values&&group('model',toggle('useCustomModel','fixed'),select('model',values.enhanceModel?JSON.stringify([values.enhanceProvider,values.enhanceModel]):'',raw=>{const [enhanceProvider,enhanceModel]=raw?JSON.parse(raw):['',''];save({enhanceProvider,enhanceModel})},modelChoices,!values.useCustomModel||!models),models===false&&h('p',null,tr('catalog'),' ',button(tr('retry'),()=>reload(v=>v+1)))),
-        values&&group('context.group',toggle('contextEnabled','context.enabled','contextHint'),values.contextEnabled&&h('div',{className:'dsh-pp_contextSub'},toggle('contextImages','context.images'),h('label',{className:'dsh-pp_countControl'},tr('context.imageCount'),h('input',{type:'number',min:0,max:4,step:1,value:values.contextImageCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=4)save({contextImageCount:n})}})),toggle('contextFileContents','context.files'),h('label',{className:'dsh-pp_countControl'},tr('context.fileCount'),h('input',{type:'number',min:0,max:2,step:1,value:values.contextFileCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=2)save({contextFileCount:n})}}))),
-        values&&group('composer.images',toggle('composerImages','context.includeImages'),h('label',{className:'dsh-pp_countControl'},tr('context.imageCount'),h('input',{type:'number',min:0,max:4,step:1,value:values.composerImageCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=4)save({composerImageCount:n})}}))),
-        values&&group('composer.files',toggle('composerFiles','context.includeFileContents','filesHint'),h('label',{className:'dsh-pp_countControl'},tr('context.fileCount'),h('input',{type:'number',min:0,max:2,step:1,value:values.composerFileCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=2)save({composerFileCount:n})}}))),
+        values&&group('model',select('model',values.useCustomModel&&values.enhanceModel?JSON.stringify([values.enhanceProvider,values.enhanceModel]):'',raw=>{const [enhanceProvider,enhanceModel]=raw?JSON.parse(raw):['',''];save({useCustomModel:!!raw,enhanceProvider,enhanceModel})},modelChoices,!models),models===false&&h('p',null,tr('catalog'),' ',button(tr('retry'),()=>reload(v=>v+1)))),
+        values&&group('context.group',toggle('contextEnabled','context.enabled','contextHint'),values.contextEnabled&&h('div',{className:'dsh-pp_contextSub'},toggle('contextImages','context.images'),values.contextImages&&h('label',{className:'dsh-pp_countControl'},tr('context.imageCount'),h('input',{type:'number',min:0,max:4,step:1,value:values.contextImageCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=4)save({contextImageCount:n})}})),toggle('contextFileContents','context.files'),values.contextFileContents&&h('label',{className:'dsh-pp_countControl'},tr('context.fileCount'),h('input',{type:'number',min:0,max:2,step:1,value:values.contextFileCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=2)save({contextFileCount:n})}}))),
+        values&&group('composer.images',toggle('composerImages','context.includeImages'),values.composerImages&&h('label',{className:'dsh-pp_countControl'},tr('context.imageCount'),h('input',{type:'number',min:0,max:4,step:1,value:values.composerImageCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=4)save({composerImageCount:n})}}))),
+        values&&group('composer.files',toggle('composerFiles','context.includeFileContents','filesHint'),values.composerFiles&&h('label',{className:'dsh-pp_countControl'},tr('context.fileCount'),h('input',{type:'number',min:0,max:2,step:1,value:values.composerFileCount??2,onChange:e=>{const n=Number(e.target.value);if(Number.isInteger(n)&&n>=0&&n<=2)save({composerFileCount:n})}}))),
         values&&group('shortcut',toggle('shortcutEnabled','enabled'),button(recording?tr('escape'):shortcut.keys||tr('record'),()=>{record(!recording);setBindingError('')},{disabled:!values.shortcutEnabled,onKeyDown:e=>{if(!recording)return;e.preventDefault();e.stopPropagation();if(e.code==='Escape'){record(false);return;}if(BARE_MODIFIERS.test(e.code))return;record(false);shortcut.assign(comboFromEvent(e)).then(setBindingError);}}),button(tr('reset'),()=>shortcut.reset().then(setBindingError),{disabled:!values.shortcutEnabled||shortcut.isDefault}),bindingError&&h('p',{role:'alert'},bindingError)),
         !!data?.changelog?.length&&h('section',null,h('h3',null,tr('notes')),data.changelog.map(v=>h('details',{key:v.version},h('summary',null,'v'+v.version),h('ul',null,v.items.map((s,i)=>h('li',{key:i},s))))))));
     }

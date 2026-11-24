@@ -1,5 +1,21 @@
 # 变更记录 · Changelog
 
+## 2.1.2
+
+**中文**
+
+- 参考范围全部迁移至插件设置页，输入区不再显示该入口。
+- 加载态采用蓝底停止方块，与常态纸飞机明确区分。
+- 模型选择合并为单一控件，跟随会话与固定模型原子保存；媒体关闭时隐藏数量。
+- 浏览器读取附件前执行数量限制；修复快捷键开关保存后未即时生效、旧配置字段显示与请求不一致。
+
+**English**
+
+- Move all source controls to plugin settings and remove the composer entry.
+- Distinguish loading with a filled blue stop action.
+- Save model routing atomically with a unified picker and hide inactive media counts.
+- Enforce attachment counts before reading bytes; synchronize shortcut opt-in and legacy configuration behavior.
+
 ## 2.1.1
 
 **中文**

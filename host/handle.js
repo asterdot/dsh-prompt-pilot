@@ -3,6 +3,7 @@
 // shape the browser consumes. Every failure exits through one response builder.
 
 import { EnhanceFailure, resolveConfig } from './config.js';
+import { readPreferences } from './settings.js';
 import {
   classifyEnhancementOutput,
   looksLikeQuestion,
@@ -98,7 +99,7 @@ function toFailureResponse(error, signal, config) {
  */
 function liveConfig(scope, config) {
   const live = scope?.fiber?.entry?.options?.config;
-  return resolveConfig({ ...config, ...live });
+  return resolveConfig({ ...config, ...live, ...readPreferences(scope, '', config) });
 }
 
 /**

@@ -1,6 +1,6 @@
 {
   "name": "dsh-prompt-pilot",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Prompt Pilot for DeepSeek Harness: in-place draft enhancement, first-message mode advice, and tiered skill suggestions.",
   "type": "module",
   "icon": "icon.svg",
@@ -74,7 +74,7 @@
   },
   "scripts": {
     "check": "node scripts/check-syntax.mjs",
-    "test": "node tests/test-host.mjs && node tests/test-advice.mjs && node tests/test-draft-math.mjs && node tests/test-settings.mjs && node tests/test-rules.mjs && node tests/test-composer-files.mjs && node tests/test-lifecycle.mjs && node tests/test-settings-client.mjs && node tests/test-host-contracts.mjs && node tests/test-shortcut-contract.mjs",
+    "test": "node tests/test-host.mjs && node tests/test-advice.mjs && node tests/test-draft-math.mjs && node tests/test-settings.mjs && node tests/test-rules.mjs && node tests/test-composer-files.mjs && node tests/test-lifecycle.mjs && node tests/test-settings-client.mjs && node tests/test-host-contracts.mjs && node tests/test-shortcut-contract.mjs && node tests/test-preference-regressions.mjs",
     "prepublishOnly": "npm run check && npm test",
     "pack": "node -e \"require('node:fs').mkdirSync('dist',{recursive:true})\" && npm pack --pack-destination dist"
   }
