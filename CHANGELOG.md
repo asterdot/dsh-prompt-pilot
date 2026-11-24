@@ -1,5 +1,17 @@
 # 变更记录 · Changelog
 
+## 2.1.1
+
+**中文**
+
+- 输入区仅保留紧凑增强按钮与默认折叠的参考范围；引用选项改为单列，关闭媒体时隐藏数量框。
+- 结果和技能建议只在有结果时出现并可折叠，取消悬浮覆盖；修复中英文历史媒体标签中的 undefined。
+
+**English**
+
+- Keep a compact enhance action and collapsed source controls; use a single column and hide counts while media is disabled.
+- Show collapsible results and skill advice only after a result, without floating overlays; fix undefined historical-media labels.
+
 ## 2.1.0
 
 **中文**

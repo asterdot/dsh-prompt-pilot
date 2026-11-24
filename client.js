@@ -168,6 +168,15 @@ window.__ModuleLoader__.load({
       '.dsh-pp-changelogFoot{color:var(--dsw-alias-brand-primary,#4176e6);text-decoration:none;font-size:12px}',
       '.dsh-pp-changelogFoot:hover{text-decoration:underline}',
       '@media (max-width:560px){.dsh-pp_statusFrame{width:240px}.dsh-pp-settingsRow{flex-direction:column;align-items:stretch}}',
+      '.dsh-pp_root{gap:6px;max-width:100%;min-width:0;flex-wrap:wrap;font-size:12px}',
+      '.dsh-pp_button{width:auto;flex:0 0 auto;gap:5px;padding:0 7px;height:28px;font:inherit}',
+      '.dsh-pp_references,.dsh-pp_results{position:relative;min-width:0;max-width:100%}',
+      '.dsh-pp_references summary,.dsh-pp_results summary{cursor:pointer;padding:5px 4px;font-size:12px;overflow-wrap:anywhere}',
+      '.dsh-pp_contextControls{grid-template-columns:minmax(0,1fr);width:260px;max-width:calc(100vw - 64px);box-sizing:border-box;padding:10px;gap:12px}',
+      '.dsh-pp_references:not([open])>.dsh-pp_contextControls,.dsh-pp_results:not([open])>.dsh-pp_statusFrame{display:none}',
+      '.dsh-pp_controlGroup{display:grid;gap:6px;overflow-wrap:anywhere}.dsh-pp_contextSub{display:grid;gap:6px}',
+      '.dsh-pp_statusFrame{position:static;width:260px;max-width:calc(100vw - 64px);box-sizing:border-box;box-shadow:none;backdrop-filter:none;z-index:auto;max-height:40vh}',
+      '.dsh-pp_notice{white-space:normal;overflow-wrap:anywhere}',
     ].join('\n');
 
     const installStyles = () => {
@@ -198,8 +207,8 @@ window.__ModuleLoader__.load({
       'context.imageCount': '数量',
       'context.fileCount': '数量',
       'context.enabled': '参考本会话',
-      'context.images': '图片 {count}',
-      'context.files': '文件内容 {count}',
+      'context.images': '历史图片内容',
+      'context.files': '历史文件内容',
       'shortcut.run': '增强提示词',
       'state.refused': '输入框没有接受替换，草稿保持不变。',
       'state.deferred': '消息正在发送，改写结果已保留，输入框空闲后自动写入。',
@@ -225,6 +234,7 @@ window.__ModuleLoader__.load({
       'mode.extreme': '建议：极简模式',
       'mode.creative': '建议：创造模式',
       'mode.confirm': '发送前请确认对话模式',
+      'skill.empty': '暂无相关技能建议',
       'skill.likely': '很可能用到',
       'skill.possible': '可能用到',
       'skill.copy': '复制技能名',
@@ -282,8 +292,8 @@ window.__ModuleLoader__.load({
       'context.imageCount': 'Count',
       'context.fileCount': 'Count',
       'context.enabled': 'Use conversation context',
-      'context.images': 'Images {count}',
-      'context.files': 'File contents {count}',
+      'context.images': 'Historical image content',
+      'context.files': 'Historical file content',
       'shortcut.run': 'Enhance prompt',
       'state.refused': 'The composer refused the replacement; the draft is unchanged.',
       'state.deferred': 'A message is in flight; the rewrite is kept and lands once the composer is idle.',
@@ -309,6 +319,7 @@ window.__ModuleLoader__.load({
       'mode.extreme': 'Suggested: Extreme',
       'mode.creative': 'Suggested: Creative',
       'mode.confirm': 'Check the conversation mode before sending',
+      'skill.empty': 'No relevant skill suggestions',
       'skill.likely': 'Likely needed',
       'skill.possible': 'Possibly needed',
       'skill.copy': 'Copy skill names',
@@ -1091,7 +1102,7 @@ window.__ModuleLoader__.load({
         setContextControls(v=>({...v,...patch}));
         try { const response=await fetch('/api/prompt-pilot/settings?scope=composer',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify(values)}); const body=await response.json(); if(!response.ok||body?.ok!==true) throw Error(); if(body.values) setPolicy(v=>({...v,values:{...v?.values,...body.values}})); } catch { setContextControls(v=>{const restored={...v};for(const key of Object.keys(patch))if(Object.is(v[key],patch[key]))restored[key]=before[key];return restored;}); }
       };
-      const contextControl = (key, label, count) => h('label', {className:'dsh-pp_contextToggle'}, h('input', {type:'checkbox',checked:contextControls[key] === true,disabled:busy || (['images','files'].includes(key) && !contextControls.enabled),onChange:event=>saveContext({[key]:event.target.checked})}), h('span',null,t(label,{count})));
+      const contextControl = (key, label, count) => h('label', {className:'dsh-pp_contextToggle'}, h('input', {type:'checkbox',checked:contextControls[key] === true,disabled:busy || (['images','files'].includes(key) && !contextControls.enabled),onChange:event=>saveContext({[key]:event.target.checked})}), h('span',null,t(label)));
       const countControl = (key,label) => h('label',{className:'dsh-pp_countControl'},h('span',null,t(label)),h('input',{type:'number',min:0,step:1,value:contextControls[key],disabled:busy,onChange:event=>{const n=Number(event.target.value);if(Number.isSafeInteger(n)&&n>=0)saveContext({[key]:n});}}));
 
       return h('div', {
@@ -1114,27 +1125,29 @@ window.__ModuleLoader__.load({
       h('span', { className: 'dsh-pp_plane' + (busy ? ' is-busy' : '') },
         busy ? h(PilotIcon, { size: 16 }) : canUndo ? h(UndoIcon, { size: 16 }) : failure !== null ? h(RetryIcon, { size: 16 }) : h(PilotIcon, { size: 16 }),
       ),
+      h('span',null,t('shortcut.run')),
       ),
       restore?.inverse && !restore.pending && !busy && !canUndo ? h('button', {type:'button',className:'dsh-pp_skillCopy',onClick:()=>{
         if (taskStore.ensure(sessionId).restore !== restore) return;
         const done=replaceDraft(restore.text,draft,draftRev,restore.inverse);
         taskStore.patch(sessionId,done.ok ? {restore:null,notice:null,failure:null} : {failure:t('state.refused')});
       }},t('label.undo')) : null,
-      h('div',{className:'dsh-pp_contextControls'},
-        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.group')),contextControl('enabled','context.enabled'),contextControls.enabled&&h('div',{className:'dsh-pp_contextSub'},contextControl('images','context.images'),countControl('imageCount','context.imageCount'),contextControl('files','context.files'),countControl('fileCount','context.fileCount'))),
-        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.composerImages')),contextControl('composerImages','context.includeImages'),countControl('composerImageCount','context.imageCount')),
-        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.composerFiles')),contextControl('composerFiles','context.includeFileContents'),countControl('composerFileCount','context.fileCount'))),
+      h('details',{className:'dsh-pp_references',onKeyDown:event=>{if(event.key==='Escape')event.currentTarget.open=false;}},h('summary',null,t('prefs.privacy')),h('div',{className:'dsh-pp_contextControls'},
+        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.group')),contextControl('enabled','context.enabled'),contextControls.enabled&&h('div',{className:'dsh-pp_contextSub'},contextControl('images','context.images'),contextControls.images&&countControl('imageCount','context.imageCount'),contextControl('files','context.files'),contextControls.files&&countControl('fileCount','context.fileCount'))),
+        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.composerImages')),contextControl('composerImages','context.includeImages'),contextControls.composerImages&&countControl('composerImageCount','context.imageCount')),
+        h('section',{className:'dsh-pp_controlGroup'},h('strong',null,t('context.composerFiles')),contextControl('composerFiles','context.includeFileContents'),contextControls.composerFiles&&countControl('composerFileCount','context.fileCount')))),
       (() => {
         const validRestore = !busy && restore !== null && ((restore.pending === true && restore.pendingDraft === draft) || (restore.pending !== true && restore.produced === draft && restore.adviceRev === draftRev));
         const advice = firstDraft === true && validRestore ? restore.modeAdvice : null;
         const skillAdvice = validRestore ? restore.skillAdvice : null;
         const visibleSkillAdvice = skillAdvice ?? {likely:[],possible:[]};
         const message = failure !== null ? failure : (notice !== null && !busy ? notice : null);
-        return h('div', { className: 'dsh-pp_statusFrame', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : 'status' },
+        if (!validRestore && message === null) return null;
+        return h('details',{className:'dsh-pp_results'},h('summary',null,message ?? t('shortcut.run')),h('div', { className: 'dsh-pp_statusFrame', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : 'status' },
           advice !== null ? h(ModeStatus, { mode: advice.mode, reason: advice.reason, t }) : null,
-          h(SkillStatus, { skillAdvice:visibleSkillAdvice, t }),
+          validRestore ? ((visibleSkillAdvice.likely.length || visibleSkillAdvice.possible.length) ? h(SkillStatus, { skillAdvice:visibleSkillAdvice, t }) : h('span',null,t('skill.empty'))) : null,
           message !== null ? h('span', { className: 'dsh-pp_notice', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : undefined, title: message }, message) : null,
-        );
+        ));
       })(),
       h('span', { className: 'dsh-pp_sr', role: 'status', 'aria-live': 'polite' }, status),
       );
