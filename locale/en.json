@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Prompt Enhance",
-    "description": "Adds a one-click \"Enhance prompt\" control beside the composer: rewrites the draft into a clearer, more complete prompt with the model the session has selected, then puts it back in the input box without sending."
+    "title": "Prompt Pilot",
+    "description": "Adds a one-click enhancer beside the composer: rewrites the draft into a clearer, more complete prompt with the model the session has selected, then puts it back without sending. The first message of a session also gets mode advice and skill suggestions."
   }
 }

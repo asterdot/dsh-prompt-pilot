@@ -1,26 +1,15 @@
-# 提示词领航更新日志
+# 变更记录 · Changelog
 
-## 1.0.2
-
-**中文**
-
-- **改进项目交接模式建议**：完整评估交接资料、工作区、待办和依赖；对需要多阶段推进与验证的任务，不再草率建议标准模式。
-
-## 1.0.1
+## 2.0.0
 
 **中文**
 
-- **保留用户手打的文件引用**：增强结果不再缩短或删除 `@"..."` 路径；模型遗漏时会按草稿中的原文补回。
-- **修正建议栏对齐与配色**：状态卡与撤销标同排并占用布局空间，避免遮挡输入文字；状态框使用磨砂黑底和白字。
-
-## 1.0.0
-
-**中文**
-
-- 基于 dsh-prompt-rewriter 1.8.3 的独立二改版本。
-- 在发送首条消息前给出模式建议，不自动发送或切换模式。
-- 将相关且可用的技能分成两档写入草稿，不自动执行技能。
+- 当前源码版本。保留原地改写、撤销、首条消息模式建议及分档技能推荐，不自动发送消息、切换模式或执行技能。
+- 优先返回可用草稿：遇到追问时尝试提取改写或按经典规则重试，仍不可用则保留原稿。
+- 升级及数据边界见 [中文指南](README.md)：关闭文件内容引用不等于隐藏文件名，关闭历史引用也不等于禁用首条消息判断。
 
 **English**
 
-- Initial independent fork of dsh-prompt-rewriter 1.8.3.
+- Source version. In-place rewrites, undo, first-message mode advice and tiered skill suggestions remain. Sending, switching modes and executing skills stay under user control.
+- When a model asks a question instead of rewriting, the host tries to recover a rewrite or retries with classic rules; otherwise it keeps the draft.
+- See the [English guide](README.en.md) for upgrades and data boundaries. Disabling file content does not hide filenames; disabling history does not turn off first-message detection.
