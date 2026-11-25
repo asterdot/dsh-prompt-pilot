@@ -1,5 +1,17 @@
 # 变更记录 · Changelog
 
+## 2.1.3
+
+**中文**
+
+- 草稿发送或手动清空后，清除回退原稿、结果说明和技能建议；取消未完成的增强，丢弃迟到响应。
+- 保留发送前手动修改后的回退能力。
+
+**English**
+
+- Clear restore snapshots and result advice when the composer is emptied; cancel pending enhancement and ignore late responses.
+- Keep explicit restore available across manual edits before sending.
+
 ## 2.1.2
 
 **中文**

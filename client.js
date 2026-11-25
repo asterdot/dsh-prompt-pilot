@@ -1018,6 +1018,7 @@ window.__ModuleLoader__.load({
               reason:typeof body.reason === 'string' ? t('reason.' + body.reason) : '',
               modeAdvice, skillAdvice }, contextAware:body.mode === 'context', restore:null });
           } catch (error) {
+            if (taskStore.ensure(sessionId).controller !== controller) return;
             if (controller.signal.aborted) {
               taskStore.patch(sessionId, { announce: t('state.cancelled'), failure: null });
               return;
@@ -1040,6 +1041,17 @@ window.__ModuleLoader__.load({
         record.trigger = trigger;
         return () => { if (record.trigger === trigger) record.trigger = undefined; };
       }, [sessionId]);
+
+      // Sending consumes the draft. Emptying it manually has the same boundary:
+      // the previous original and advice must never leak into the next draft.
+      const emptyDraft = draft.trim().length === 0;
+      useEffect(() => {
+        if (!emptyDraft) return;
+        const current = taskStore.ensure(sessionId);
+        if (!current.restore && !current.result && !current.controller && current.notice === null && current.failure === null && current.announce === null) return;
+        current.controller?.abort();
+        taskStore.patch(sessionId, { restore:null, result:null, controller:null, phase:'idle', notice:null, failure:null, announce:null });
+      }, [sessionId, emptyDraft, task.restore, task.result, task.controller, task.notice, task.failure, task.announce]);
 
       const result = task.result;
       useEffect(() => {

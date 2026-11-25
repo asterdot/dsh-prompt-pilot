@@ -139,6 +139,24 @@ test('frozen composer parks completion; an intervening edit discards it',async()
 test('confirmed segmented rewrite restores every gap around both chips exactly',async()=>{
  const h=harness(),a=h.mount('a','first#middle#last');a.click();await h.finish();a.render().render().render();assert.equal(a.raw,'##摘要');assert.equal(a.mode,'undo');a.click();a.render();assert.equal(a.raw,'first#middle#last');
 });
+test('clearing a sent draft removes restore and result notice permanently',async()=>{
+ for(const kind of ['enhanced','unchanged']){
+  const h=harness(),a=h.mount('sent','one');h.setResult({ok:true,kind,text:kind==='unchanged'?'one':'摘要',reason:'rewrite'});
+  a.click();await h.finish();a.render().render().render();
+  a.raw='';a.rev++;a.render().render();
+  assert.equal(a.tree.children.filter(n=>n?.type==='button'&&n.props.className==='dsh-pp_skillCopy').length,0);
+  assert.equal(a.tree.children.filter(n=>n?.type==='details').length,0);
+  a.raw='next draft';a.rev++;a.render().render();
+  assert.equal(a.tree.children.filter(n=>n?.type==='button'&&n.props.className==='dsh-pp_skillCopy').length,0);
+ }
+});
+test('clearing during enhancement discards late completion without a notice',async()=>{
+ const h=harness(),a=h.mount('sent-running','one');a.click();await h.tick();
+ a.raw='';a.rev++;a.render().render();await h.finish();a.render().render();
+ assert.equal(a.writes,0);assert.equal(a.mode,'idle');
+ assert.equal(a.tree.children.filter(n=>n?.type==='details').length,0);
+});
+
 test('explicit restore survives manual edits and keeps chip gaps',async()=>{
  for(const original of ['one','first#middle#last']){
   const h=harness(),a=h.mount('restore',original);a.click();await h.finish();a.render().render().render();
