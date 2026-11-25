@@ -173,7 +173,7 @@ window.__ModuleLoader__.load({
       '.dsh-pp_references,.dsh-pp_results{position:relative;min-width:0;max-width:100%}',
       '.dsh-pp_references summary,.dsh-pp_results summary{cursor:pointer;padding:5px 4px;font-size:12px;overflow-wrap:anywhere}',
       '.dsh-pp_contextControls{grid-template-columns:minmax(0,1fr);width:260px;max-width:calc(100vw - 64px);box-sizing:border-box;padding:10px;gap:12px}',
-      '.dsh-pp_references:not([open])>.dsh-pp_contextControls,.dsh-pp_results:not([open])>.dsh-pp_statusFrame{display:none}',
+      '.dsh-pp_references:not([open])>.dsh-pp_contextControls,.dsh-pp_results[hidden]>.dsh-pp_statusFrame{display:none}',
       '.dsh-pp_controlGroup{display:grid;gap:6px;overflow-wrap:anywhere}.dsh-pp_contextSub{display:grid;gap:6px}',
       '.dsh-pp_statusFrame{position:static;width:260px;max-width:calc(100vw - 64px);box-sizing:border-box;box-shadow:none;backdrop-filter:none;z-index:auto;max-height:40vh}',
       '.dsh-pp_notice{white-space:normal;overflow-wrap:anywhere}',
@@ -1127,7 +1127,7 @@ window.__ModuleLoader__.load({
         if (taskStore.ensure(sessionId).restore !== restore) return;
         const done=replaceDraft(restore.text,draft,draftRev,restore.inverse);
         taskStore.patch(sessionId,done.ok ? {restore:null,notice:null,failure:null} : {failure:t('state.refused')});
-      }},t('label.undo')) : null,
+      }},h(UndoIcon,{size:16}),t('label.undo')) : null,
 
       (() => {
         const validRestore = !busy && restore !== null && ((restore.pending === true && restore.pendingDraft === draft) || (restore.pending !== true && restore.produced === draft && restore.adviceRev === draftRev));
@@ -1136,7 +1136,7 @@ window.__ModuleLoader__.load({
         const visibleSkillAdvice = skillAdvice ?? {likely:[],possible:[]};
         const message = failure !== null ? failure : (notice !== null && !busy ? notice : null);
         if (!validRestore && message === null) return null;
-        return h('details',{className:'dsh-pp_results'},h('summary',null,message ?? t('shortcut.run')),h('div', { className: 'dsh-pp_statusFrame', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : 'status' },
+        return h('div',{className:'dsh-pp_results'},h('div', { className: 'dsh-pp_statusFrame', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : 'status' },
           advice !== null ? h(ModeStatus, { mode: advice.mode, reason: advice.reason, t }) : null,
           validRestore ? ((visibleSkillAdvice.likely.length || visibleSkillAdvice.possible.length) ? h(SkillStatus, { skillAdvice:visibleSkillAdvice, t }) : h('span',null,t('skill.empty'))) : null,
           message !== null ? h('span', { className: 'dsh-pp_notice', 'data-tone': failure !== null ? 'error' : 'info', role: failure !== null ? 'alert' : undefined, title: message }, message) : null,

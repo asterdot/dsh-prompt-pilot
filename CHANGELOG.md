@@ -1,5 +1,17 @@
 # 变更记录 · Changelog
 
+## 2.1.4
+
+**中文**
+
+- 结果直接显示为面板，删除重复的折叠摘要行。
+- 手动改字前后，回退操作统一使用同一箭头图标。
+
+**English**
+
+- Show the result panel directly without a duplicate disclosure summary.
+- Use the same restore arrow before and after manual edits.
+
 ## 2.1.3
 
 **中文**

@@ -145,7 +145,7 @@ test('clearing a sent draft removes restore and result notice permanently',async
   a.click();await h.finish();a.render().render().render();
   a.raw='';a.rev++;a.render().render();
   assert.equal(a.tree.children.filter(n=>n?.type==='button'&&n.props.className==='dsh-pp_skillCopy').length,0);
-  assert.equal(a.tree.children.filter(n=>n?.type==='details').length,0);
+  assert.equal(a.tree.children.filter(n=>n?.props?.className==='dsh-pp_results').length,0);
   a.raw='next draft';a.rev++;a.render().render();
   assert.equal(a.tree.children.filter(n=>n?.type==='button'&&n.props.className==='dsh-pp_skillCopy').length,0);
  }
@@ -154,7 +154,18 @@ test('clearing during enhancement discards late completion without a notice',asy
  const h=harness(),a=h.mount('sent-running','one');a.click();await h.tick();
  a.raw='';a.rev++;a.render().render();await h.finish();a.render().render();
  assert.equal(a.writes,0);assert.equal(a.mode,'idle');
- assert.equal(a.tree.children.filter(n=>n?.type==='details').length,0);
+ assert.equal(a.tree.children.filter(n=>n?.props?.className==='dsh-pp_results').length,0);
+});
+
+test('result uses direct panel and restore keeps the same icon after typing',async()=>{
+ const h=harness(),a=h.mount('panel','one');a.click();await h.finish();a.render().render().render();
+ const nodes=n=>n&&typeof n==='object'?[n,...(n.children||[]).flatMap(nodes)]:[];
+ assert.equal(nodes(a.tree).filter(n=>['details','summary'].includes(n.type)).length,0);
+ assert.equal(nodes(a.tree).filter(n=>n.props.className==='dsh-pp_statusFrame').length,1);
+ const before=a.tree.children.find(n=>n?.type==='button').children[0].children[0].type;
+ a.raw='manual edit';a.rev++;a.render().render();
+ const restore=a.tree.children.find(n=>n?.type==='button'&&n.props.className==='dsh-pp_skillCopy');
+ assert.equal(restore.children[0].type,before);restore.props.onClick();assert.equal(a.raw,'one');
 });
 
 test('explicit restore survives manual edits and keeps chip gaps',async()=>{
