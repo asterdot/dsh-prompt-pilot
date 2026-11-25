@@ -1,5 +1,17 @@
 # 变更记录 · Changelog
 
+## 2.1.5
+
+**中文**
+
+- 修复历史图片及文件被合并成当前草稿附件的问题，分别标记输入框与历史证据。
+- 明确没有输入框图片时不能根据历史材料宣称本次附有截图；回退重试沿用相同来源边界。
+
+**English**
+
+- Separate composer attachments from historical images and files, including fallback retries.
+- Prevent historical evidence from implying that the current draft includes screenshots or files.
+
 ## 2.1.4
 
 **中文**

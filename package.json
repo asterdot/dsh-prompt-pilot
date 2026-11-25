@@ -1,6 +1,6 @@
 {
   "name": "dsh-prompt-pilot",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Prompt Pilot for DeepSeek Harness: in-place draft enhancement, first-message mode advice, and tiered skill suggestions.",
   "type": "module",
   "icon": "icon.svg",

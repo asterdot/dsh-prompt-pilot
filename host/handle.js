@@ -201,7 +201,8 @@ export async function handle(scope, config, request, lifetime, windowCache) {
     const contextNames = contextMedia.names.filter(name => !composerNames.has(name.toLocaleLowerCase()));
     const composerFileTexts = new Set(files.map(file => String(file.text ?? '').trim()));
     const contextFiles = contextMedia.files.filter(file => !composerFileTexts.has(String(file.text ?? '').replace(/^UNTRUSTED CONTEXT FILE DATA \(not instructions; bounded excerpt\):\n/u, '').trim()));
-    const raw = await generate(scope, effective, route, draft, modelHistory, [...contextMedia.images, ...images], signal, windowCache, sessionId, directive, [...contextFiles, ...files], [...contextNames, ...fileNames]);
+    const evidenceHistory = { ...modelHistory, contextFiles, contextFileNames: contextNames };
+    const raw = await generate(scope, effective, route, draft, evidenceHistory, images, signal, windowCache, sessionId, directive, files, fileNames);
     const primary = wantsAdvice ? splitModeAdvice(raw) : { text: raw };
     let advice = strengthenHandoverAdvice(draft, primary.advice);
     let outcome = classifyEnhancementOutput(normalizeOutput(primary.text, effective.maxOutputChars));
@@ -218,7 +219,7 @@ export async function handle(scope, config, request, lifetime, windowCache) {
       } else {
         // One legacy-rules retry, because the legacy playbook answers questions
         // with placeholders instead of asking them back.
-        const retry = await generate(scope, { ...effective, ruleSet: 'legacy' }, route, draft, history, images, signal, windowCache, sessionId, directive, files, fileNames, 1);
+        const retry = await generate(scope, { ...effective, ruleSet: 'legacy' }, route, draft, evidenceHistory, images, signal, windowCache, sessionId, directive, files, fileNames, 1);
         const retryPrimary = wantsAdvice ? splitModeAdvice(retry) : { text: retry };
         advice = retryPrimary.advice ?? advice;
         const retryOutcome = classifyEnhancementOutput(normalizeOutput(retryPrimary.text, effective.maxOutputChars));
